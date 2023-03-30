@@ -42,6 +42,8 @@ class Product(BaseFields):
     ProductName=models.CharField(max_length=50,blank=False,null=False)
     ProductDecription=models.CharField(max_length=50,blank=False,null=False)
     ProductPrice=models.CharField(max_length=50,blank=False,null=False )
+    ProductImage=models.ImageField(upload_to='Images/', height_field=None, width_field=None, max_length=None)############################################################
+
     def __str__(self):
         return self.ProductName
 
