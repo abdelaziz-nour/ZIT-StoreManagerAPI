@@ -13,7 +13,7 @@ urlpatterns = [
     path('addcategory', views.AddCategory),
     path('addproduct', views.AddProduct),
     path('addorder', views.AddOrder),
-    
+
     path('getusers', views.GetUsers),
     path('getstores', views.GetStores),
     path('getproducts', views.GetProducts),
@@ -23,6 +23,9 @@ urlpatterns = [
     path('getstoreproducts', views.GetStoreProducts),
     path('getstoreorders', views.GetStoreOrders),
 
+    path('deletestore', views.DeleteStore),
+    path('deletecategory', views.DeleteCategory),
+    path('deleteproduct', views.DeleteProduct),
 
 
     ]

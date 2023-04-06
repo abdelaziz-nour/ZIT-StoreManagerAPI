@@ -25,7 +25,7 @@ class BaseFields(models.Model):
 
 
 class Store(BaseFields):
-    Owner = models.OneToOneField(CustomUser, on_delete=models.CASCADE, blank=False, null=False)
+    Owner = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
     Name = models.CharField(max_length=50, blank=False, null=False)
     Image = models.ImageField(upload_to='Stores/', height_field=None, width_field=None, max_length=None)
     def __str__(self):

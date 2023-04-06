@@ -5,9 +5,6 @@ from .models import *
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view
 from django.contrib.auth import authenticate
-from rest_framework.decorators import authentication_classes, permission_classes
-from rest_framework.authentication import TokenAuthentication, BaseAuthentication, SessionAuthentication
-from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import get_user_model
 from datetime import datetime
 import json
@@ -43,7 +40,6 @@ def Register(request):
         logging.warning(f"Exception Desc: {exception}")
         return custom_response(message="something went wrong")
 
-
 @api_view(['POST'])
 def Login(request):
     try:
@@ -65,8 +61,6 @@ def Login(request):
         return custom_response(message="Authentication Failure")
 
 
-authentication_classes([TokenAuthentication, BaseAuthentication, SessionAuthentication])
-@permission_classes([IsAuthenticated])
 @api_view(['POST'])
 def AddStore(request):
     User = get_user_model()
@@ -103,9 +97,6 @@ def AddStore(request):
         logging.warning(f"Exception Desc: {exception}")
         return custom_response(message="No Token Provided")
 
-
-authentication_classes([TokenAuthentication, BaseAuthentication, SessionAuthentication])
-@permission_classes([IsAuthenticated])
 @api_view(['POST'])
 def AddCategory(request):
     User = get_user_model()
@@ -143,8 +134,6 @@ def AddCategory(request):
         logging.warning(f"Exception Desc: {exception}")
         return custom_response(message="No Token Provided")
 
-authentication_classes([TokenAuthentication, BaseAuthentication, SessionAuthentication])
-@permission_classes([IsAuthenticated])
 @api_view(['POST'])
 def AddProduct(request):
     User = get_user_model()
@@ -185,9 +174,6 @@ def AddProduct(request):
         logging.warning(f"Exception Desc: {exception}")
         return custom_response(message="No Token Provided")
 
-
-authentication_classes([TokenAuthentication, BaseAuthentication, SessionAuthentication])
-@permission_classes([IsAuthenticated])
 @api_view(['POST'])
 def AddOrder(request):
     User = get_user_model()
@@ -252,8 +238,6 @@ def AddOrder(request):
         logging.warning(f"Exception Desc: {exception}")
         return custom_response(message="No Token Provided")
     
-authentication_classes([TokenAuthentication, BaseAuthentication, SessionAuthentication])
-@permission_classes([IsAuthenticated])
 @api_view(['GET'])
 def GetStores(request):
     User = get_user_model()
@@ -263,7 +247,7 @@ def GetStores(request):
         user = User.objects.get(id=token_obj.user_id)
         User.objects.get(id=user.id)
         try: 
-            Stores=Store.objects.all()
+            Stores=Store.objects.filter(IsDeleted=False)
             data = []
             for store in Stores:
                 field = {
@@ -293,8 +277,6 @@ def GetStores(request):
         logging.warning(f"Exception Desc: {exception}")
         return custom_response(message="No Token Provided")
     
-authentication_classes([TokenAuthentication, BaseAuthentication, SessionAuthentication])
-@permission_classes([IsAuthenticated])
 @api_view(['GET'])
 def GetProducts(request):
     User = get_user_model()
@@ -304,7 +286,7 @@ def GetProducts(request):
         user = User.objects.get(id=token_obj.user_id)
         User.objects.get(id=user.id)
         try: 
-            Products=Product.objects.all()
+            Products=Product.objects.filter(IsDeleted=False)
             data = []
             for product in Products:
                 field = {
@@ -334,8 +316,6 @@ def GetProducts(request):
         logging.warning(f"Exception Desc: {exception}")
         return custom_response(message="No Token Provided")
 
-authentication_classes([TokenAuthentication, BaseAuthentication, SessionAuthentication])
-@permission_classes([IsAuthenticated])
 @api_view(['GET'])
 def GetOrders(request):
     User = get_user_model()
@@ -391,8 +371,6 @@ def GetOrders(request):
         logging.warning(f"Exception Desc: {exception}")
         return custom_response(message="No Token Provided")
 
-authentication_classes([TokenAuthentication, BaseAuthentication, SessionAuthentication])
-@permission_classes([IsAuthenticated])
 @api_view(['GET'])
 def GetUsers(request):
     User = get_user_model()
@@ -433,8 +411,6 @@ def GetUsers(request):
         logging.warning(f"Exception Desc: {exception}")
         return custom_response(message="No Token Provided")
     
-authentication_classes([TokenAuthentication, BaseAuthentication, SessionAuthentication])
-@permission_classes([IsAuthenticated])
 @api_view(['POST'])
 def GetStoreProducts(request):
     User = get_user_model()
@@ -446,7 +422,7 @@ def GetStoreProducts(request):
         try: 
             store = Store.objects.get(id=request.data["Store"])
             categories = Category.objects.filter(Store=store)
-            products = Product.objects.filter(Category__in=categories)
+            products = Product.objects.filter(Category__in=categories,IsDeleted=False)
             data = []
             for product in products:
                 field = {
@@ -476,8 +452,6 @@ def GetStoreProducts(request):
         logging.warning(f"Exception Desc: {exception}")
         return custom_response(message="No Token Provided")
     
-authentication_classes([TokenAuthentication, BaseAuthentication, SessionAuthentication])
-@permission_classes([IsAuthenticated])
 @api_view(['POST'])
 def GetStoreOrders(request):
     User = get_user_model()
@@ -532,8 +506,6 @@ def GetStoreOrders(request):
         logging.warning(f"Exception Desc: {exception}")
         return custom_response(message="No Token Provided")
     
-authentication_classes([TokenAuthentication, BaseAuthentication, SessionAuthentication])
-@permission_classes([IsAuthenticated])
 @api_view(['POST'])
 def GetStoreCategories(request):
     User = get_user_model()
@@ -544,7 +516,7 @@ def GetStoreCategories(request):
         User.objects.get(id=user.id)
         try: 
             store = Store.objects.get(id=request.data["Store"])
-            categories = Category.objects.filter(Store=store)
+            categories = Category.objects.filter(Store=store,IsDeleted=False)
             data = []
             for category in categories:
                 field = {
@@ -572,3 +544,138 @@ def GetStoreCategories(request):
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
         return custom_response(message="No Token Provided")
+    
+@api_view(['POST'])
+def DeleteStore(request):
+    User = get_user_model()
+    try:
+        token = request.META.get('HTTP_AUTHORIZATION', '').split(' ')[1]
+        token_obj = Token.objects.get(key=token)
+        user = User.objects.get(id=token_obj.user_id)
+        CurrentUser = User.objects.get(id=user.id)
+        try: 
+            store = Store.objects.get(id=request.data["Store"])
+            store.IsDeleted=True
+            store.DeletedBy=CurrentUser
+            store.DeletedOn=datetime.now()
+            store.save()
+            return custom_response(message='Store Deleted Successfully', success=True)
+
+        except BaseException as exception:
+            logging.warning(f"Exception Name: {type(exception).__name__}")
+            logging.warning(f"Exception Desc: {exception}")
+            return custom_response(message="Deletng Store Failure")
+    except Token.DoesNotExist:
+        logging.warning(f"Exception Name: {type(exception).__name__}")
+        logging.warning(f"Exception Desc: {exception}")
+        return custom_response(message="Token Does Not Exist")
+    except User.DoesNotExist:
+        logging.warning(f"Exception Name: {type(exception).__name__}")
+        logging.warning(f"Exception Desc: {exception}")
+        return custom_response(message="User With Provided Token Does Not Exist")
+    except IndexError as exception:
+        logging.warning(f"Exception Name: {type(exception).__name__}")
+        logging.warning(f"Exception Desc: {exception}")
+        return custom_response(message="No Token Provided")
+    
+@api_view(['POST'])
+def DeleteCategory(request):
+    User = get_user_model()
+    try:
+        token = request.META.get('HTTP_AUTHORIZATION', '').split(' ')[1]
+        token_obj = Token.objects.get(key=token)
+        user = User.objects.get(id=token_obj.user_id)
+        CurrentUser = User.objects.get(id=user.id)
+        try: 
+            category = Category.objects.get(id=request.data["Category"])
+            category.IsDeleted=True
+            category.DeletedBy=CurrentUser
+            category.DeletedOn=datetime.now()
+            category.save()
+            return custom_response(message='Store Category Successfully', success=True)
+
+        except BaseException as exception:
+            logging.warning(f"Exception Name: {type(exception).__name__}")
+            logging.warning(f"Exception Desc: {exception}")
+            return custom_response(message="Deletng Store Failure")
+    except Token.DoesNotExist:
+        logging.warning(f"Exception Name: {type(exception).__name__}")
+        logging.warning(f"Exception Desc: {exception}")
+        return custom_response(message="Token Does Not Exist")
+    except User.DoesNotExist:
+        logging.warning(f"Exception Name: {type(exception).__name__}")
+        logging.warning(f"Exception Desc: {exception}")
+        return custom_response(message="User With Provided Token Does Not Exist")
+    except IndexError as exception:
+        logging.warning(f"Exception Name: {type(exception).__name__}")
+        logging.warning(f"Exception Desc: {exception}")
+        return custom_response(message="No Token Provided")
+    
+@api_view(['POST'])
+def DeleteCategory(request):
+    User = get_user_model()
+    try:
+        token = request.META.get('HTTP_AUTHORIZATION', '').split(' ')[1]
+        token_obj = Token.objects.get(key=token)
+        user = User.objects.get(id=token_obj.user_id)
+        CurrentUser = User.objects.get(id=user.id)
+        try: 
+            category = Category.objects.get(id=request.data["Category"])
+            category.IsDeleted=True
+            category.DeletedBy=CurrentUser
+            category.DeletedOn=datetime.now()
+            category.save()
+            return custom_response(message='Store Category Successfully', success=True)
+
+        except BaseException as exception:
+            logging.warning(f"Exception Name: {type(exception).__name__}")
+            logging.warning(f"Exception Desc: {exception}")
+            return custom_response(message="Deletng Category Failure")
+    except Token.DoesNotExist:
+        logging.warning(f"Exception Name: {type(exception).__name__}")
+        logging.warning(f"Exception Desc: {exception}")
+        return custom_response(message="Token Does Not Exist")
+    except User.DoesNotExist:
+        logging.warning(f"Exception Name: {type(exception).__name__}")
+        logging.warning(f"Exception Desc: {exception}")
+        return custom_response(message="User With Provided Token Does Not Exist")
+    except IndexError as exception:
+        logging.warning(f"Exception Name: {type(exception).__name__}")
+        logging.warning(f"Exception Desc: {exception}")
+        return custom_response(message="No Token Provided")
+    
+@api_view(['POST'])
+def DeleteProduct(request):
+    User = get_user_model()
+    try:
+        token = request.META.get('HTTP_AUTHORIZATION', '').split(' ')[1]
+        token_obj = Token.objects.get(key=token)
+        user = User.objects.get(id=token_obj.user_id)
+        CurrentUser = User.objects.get(id=user.id)
+        try: 
+            product = Product.objects.get(id=request.data["Product"])
+            product.IsDeleted=True
+            product.DeletedBy=CurrentUser
+            product.DeletedOn=datetime.now()
+            product.save()
+            return custom_response(message='Store Product Successfully', success=True)
+
+        except BaseException as exception:
+            logging.warning(f"Exception Name: {type(exception).__name__}")
+            logging.warning(f"Exception Desc: {exception}")
+            return custom_response(message="Deletng Product Failure")
+    except Token.DoesNotExist:
+        logging.warning(f"Exception Name: {type(exception).__name__}")
+        logging.warning(f"Exception Desc: {exception}")
+        return custom_response(message="Token Does Not Exist")
+    except User.DoesNotExist:
+        logging.warning(f"Exception Name: {type(exception).__name__}")
+        logging.warning(f"Exception Desc: {exception}")
+        return custom_response(message="User With Provided Token Does Not Exist")
+    except IndexError as exception:
+        logging.warning(f"Exception Name: {type(exception).__name__}")
+        logging.warning(f"Exception Desc: {exception}")
+        return custom_response(message="No Token Provided")
+    
+
+    
