@@ -677,5 +677,36 @@ def DeleteProduct(request):
         logging.warning(f"Exception Desc: {exception}")
         return custom_response(message="No Token Provided")
     
+@api_view(['POST'])
+def AddProductQuantity(request):
+    User = get_user_model()
+    try:
+        token = request.META.get('HTTP_AUTHORIZATION', '').split(' ')[1]
+        token_obj = Token.objects.get(key=token)
+        user = User.objects.get(id=token_obj.user_id)
+        CurrentUser = User.objects.get(id=user.id)
+        try: 
+            product = Product.objects.get(id=request.data["Product"])
+            product.Quantity=request.data["Quantity"]
+            product.UpdatedBy=CurrentUser
+            product.UpdatedOn=datetime.now()
+            product.save()
+            return custom_response(message='Product Add Quantity Successfully', success=True)
 
+        except BaseException as exception:
+            logging.warning(f"Exception Name: {type(exception).__name__}")
+            logging.warning(f"Exception Desc: {exception}")
+            return custom_response(message="Adding Product Quantity Failure")
+    except Token.DoesNotExist:
+        logging.warning(f"Exception Name: {type(exception).__name__}")
+        logging.warning(f"Exception Desc: {exception}")
+        return custom_response(message="Token Does Not Exist")
+    except User.DoesNotExist:
+        logging.warning(f"Exception Name: {type(exception).__name__}")
+        logging.warning(f"Exception Desc: {exception}")
+        return custom_response(message="User With Provided Token Does Not Exist")
+    except IndexError as exception:
+        logging.warning(f"Exception Name: {type(exception).__name__}")
+        logging.warning(f"Exception Desc: {exception}")
+        return custom_response(message="No Token Provided")
     

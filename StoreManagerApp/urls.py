@@ -27,5 +27,5 @@ urlpatterns = [
     path('deletecategory', views.DeleteCategory),
     path('deleteproduct', views.DeleteProduct),
 
-
+    path('addproductquantity', views.AddProductQuantity),
     ]
