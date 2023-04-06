@@ -25,40 +25,43 @@ class BaseFields(models.Model):
 
 
 class Store(BaseFields):
-    Owner = models.OneToOneField(
-        CustomUser, on_delete=models.CASCADE, blank=False, null=False)
-    StoreName = models.CharField(max_length=50, blank=False, null=False)
-    Categories = models.ManyToManyField('Category', blank=True, null=True)
+    Owner = models.OneToOneField(CustomUser, on_delete=models.CASCADE, blank=False, null=False)
+    Name = models.CharField(max_length=50, blank=False, null=False)
+    Image = models.ImageField(upload_to='Stores/', height_field=None, width_field=None, max_length=None)
     def __str__(self):
-        return self.StoreName
+        return self.Name
 
 
 class Category(BaseFields):
-    Store = models.ForeignKey(
-        Store, on_delete=models.CASCADE, blank=False, null=False)
-    CategoryName = models.CharField(max_length=50, blank=False, null=False)
-    Products = models.ManyToManyField('Product', blank=True, null=True)
+    Store = models.ForeignKey(Store, on_delete=models.CASCADE, blank=False, null=False, related_name='categories')
+    Name = models.CharField(max_length=50, blank=False, null=False)
+    Image = models.ImageField(upload_to='Categories/', height_field=None, width_field=None, max_length=None)
+
     def __str__(self):
-        return self.CategoryName
+        return self.Name
 
 
 class Product(BaseFields):
-    ProductName = models.CharField(max_length=50, blank=False, null=False)
-    ProductDecription = models.CharField(
-        max_length=50, blank=False, null=False)
-    ProductPrice = models.CharField(max_length=50, blank=False, null=False)
-    Quantity = models.IntegerField()
-    ProductImage = models.ImageField(
-        upload_to='Images/', height_field=None, width_field=None, max_length=None)
+    Name = models.CharField(max_length=50, blank=False, null=False)
+    Decription = models.CharField(max_length=50, blank=False, null=False)
+    Price = models.CharField(max_length=50, blank=False, null=False)
+    Quantity = models.IntegerField(blank=False, null=False)
+    Image = models.ImageField(upload_to='Images/', height_field=None, width_field=None, max_length=None)
+    Category = models.ForeignKey(Category, on_delete=models.CASCADE, blank=False, null=False, related_name='products')
     def __str__(self):
-        return self.ProductName
+        return self.Name
+    
+class OrderItem(models.Model):
+    Product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    Quantity = models.IntegerField(blank=False, null=False, default=1)
+    def __str__(self):
+        return self.Product.Name
 
 
 class Orders(BaseFields):
-    Customer = models.ForeignKey(
-        CustomUser, on_delete=models.CASCADE, blank=False, null=False)
+    Customer = models.ForeignKey(CustomUser, on_delete=models.CASCADE, blank=False, null=False)
     Stores = models.ManyToManyField(Store, blank=False, null=False)
-    OrderedProducts = models.ManyToManyField(
-        'Product', blank=False, null=False)
+    OrderItems = models.ManyToManyField(OrderItem, blank=False, null=False)
     def __str__(self):
         return self.Customer.username
+

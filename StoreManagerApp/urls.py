@@ -8,6 +8,21 @@ urlpatterns = [
     # authentication
     path('register', views.Register),
     path('login', views.Login),
+
+    path('addstore', views.AddStore),
+    path('addcategory', views.AddCategory),
     path('addproduct', views.AddProduct),
+    path('addorder', views.AddOrder),
+    
+    path('getusers', views.GetUsers),
+    path('getstores', views.GetStores),
+    path('getproducts', views.GetProducts),
+    path('getorders', views.GetOrders),
+
+    path('getstorecategories', views.GetStoreCategories),
+    path('getstoreproducts', views.GetStoreProducts),
+    path('getstoreorders', views.GetStoreOrders),
+
+
 
     ]
