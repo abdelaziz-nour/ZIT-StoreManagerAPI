@@ -546,6 +546,46 @@ def GetStoreCategories(request):
         return custom_response(message="No Token Provided")
     
 @api_view(['POST'])
+def GetCategoryProducts(request):
+    User = get_user_model()
+    try:
+        token = request.META.get('HTTP_AUTHORIZATION', '').split(' ')[1]
+        token_obj = Token.objects.get(key=token)
+        user = User.objects.get(id=token_obj.user_id)
+        User.objects.get(id=user.id)
+        try:
+            category_id = 1  # Category ID to retrieve products from
+            category = Category.objects.get(id=category_id)
+            products = Product.objects.filter(Category=category)
+            data = []
+            for product in products:
+                product_data = {
+                    "ProductName": product.Name,
+                    "Price": product.Price,
+                    "Quantity": product.Quantity
+                }
+                data.append(product_data)
+            print(data)
+            return custom_response(data=data, success=True)
+
+        except Category.DoesNotExist:
+            logging.warning(f"Exception Name: {type(exception).__name__}")
+            logging.warning(f"Exception Desc: {exception}")
+            return custom_response(message="Category with provided ID does not exist")
+    except Token.DoesNotExist:
+        logging.warning(f"Exception Name: {type(exception).__name__}")
+        logging.warning(f"Exception Desc: {exception}")
+        return custom_response(message="Token does not exist")
+    except User.DoesNotExist:
+        logging.warning(f"Exception Name: {type(exception).__name__}")
+        logging.warning(f"Exception Desc: {exception}")
+        return custom_response(message="User with provided token does not exist")
+    except IndexError as exception:
+        logging.warning(f"Exception Name: {type(exception).__name__}")
+        logging.warning(f"Exception Desc: {exception}")
+        return custom_response(message="No token provided")
+
+@api_view(['POST'])
 def DeleteStore(request):
     User = get_user_model()
     try:

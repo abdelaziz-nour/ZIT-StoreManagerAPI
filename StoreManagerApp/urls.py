@@ -20,6 +20,7 @@ urlpatterns = [
     path('getorders', views.GetOrders),
 
     path('getstorecategories', views.GetStoreCategories),
+    path('getcategoryproducts', views.GetCategoryProducts),
     path('getstoreproducts', views.GetStoreProducts),
     path('getstoreorders', views.GetStoreOrders),
 
