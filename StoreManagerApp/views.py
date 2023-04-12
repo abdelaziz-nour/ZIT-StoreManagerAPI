@@ -182,7 +182,7 @@ def AddOrder(request):
         token_obj = Token.objects.get(key=token)
         user = User.objects.get(id=token_obj.user_id)
         CurrentUser = User.objects.get(id=user.id)
-        try: 
+        try:
             data = json.loads(request.body)
             products = data.get('OrderedProducts')
             amounts = data.get('Amounts')
@@ -237,7 +237,7 @@ def AddOrder(request):
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
         return custom_response(message="No Token Provided")
-    
+
 @api_view(['GET'])
 def GetStores(request):
     User = get_user_model()
@@ -246,7 +246,7 @@ def GetStores(request):
         token_obj = Token.objects.get(key=token)
         user = User.objects.get(id=token_obj.user_id)
         User.objects.get(id=user.id)
-        try: 
+        try:
             Stores=Store.objects.filter(IsDeleted=False)
             data = []
             for store in Stores:
@@ -276,7 +276,7 @@ def GetStores(request):
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
         return custom_response(message="No Token Provided")
-    
+
 @api_view(['GET'])
 def GetProducts(request):
     User = get_user_model()
@@ -285,7 +285,7 @@ def GetProducts(request):
         token_obj = Token.objects.get(key=token)
         user = User.objects.get(id=token_obj.user_id)
         User.objects.get(id=user.id)
-        try: 
+        try:
             Products=Product.objects.filter(IsDeleted=False)
             data = []
             for product in Products:
@@ -324,7 +324,7 @@ def GetOrders(request):
         token_obj = Token.objects.get(key=token)
         user = User.objects.get(id=token_obj.user_id)
         User.objects.get(id=user.id)
-        try: 
+        try:
             orders = Orders.objects.all()
             data = []
             total = 0
@@ -336,7 +336,7 @@ def GetOrders(request):
                         'CreatedBy': order.CreatedBy.username,
                         'CreatedOn': order.CreatedOn.strftime("%Y-%m-%d %H:%M:%S"),
                         'OrderItems': [],
-                        
+
                     }
                     for order_item in order.OrderItems.all():
                         product = order_item.Product
@@ -379,7 +379,7 @@ def GetUsers(request):
         token_obj = Token.objects.get(key=token)
         user = User.objects.get(id=token_obj.user_id)
         User.objects.get(id=user.id)
-        try: 
+        try:
             Users=User.objects.all()
             data = []
             for user in Users:
@@ -410,7 +410,7 @@ def GetUsers(request):
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
         return custom_response(message="No Token Provided")
-    
+
 @api_view(['POST'])
 def GetStoreProducts(request):
     User = get_user_model()
@@ -419,7 +419,7 @@ def GetStoreProducts(request):
         token_obj = Token.objects.get(key=token)
         user = User.objects.get(id=token_obj.user_id)
         User.objects.get(id=user.id)
-        try: 
+        try:
             store = Store.objects.get(id=request.data["Store"])
             categories = Category.objects.filter(Store=store)
             products = Product.objects.filter(Category__in=categories,IsDeleted=False)
@@ -451,7 +451,7 @@ def GetStoreProducts(request):
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
         return custom_response(message="No Token Provided")
-    
+
 @api_view(['POST'])
 def GetStoreOrders(request):
     User = get_user_model()
@@ -471,7 +471,7 @@ def GetStoreOrders(request):
                     'CreatedBy': order.CreatedBy.username,
                     'CreatedOn': order.CreatedOn.strftime("%Y-%m-%d %H:%M:%S"),
                     'OrderItems': [],
-                    
+
                 }
                 for order_item in order.OrderItems.all():
                     product = order_item.Product
@@ -505,7 +505,7 @@ def GetStoreOrders(request):
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
         return custom_response(message="No Token Provided")
-    
+
 @api_view(['POST'])
 def GetStoreCategories(request):
     User = get_user_model()
@@ -514,7 +514,7 @@ def GetStoreCategories(request):
         token_obj = Token.objects.get(key=token)
         user = User.objects.get(id=token_obj.user_id)
         User.objects.get(id=user.id)
-        try: 
+        try:
             store = Store.objects.get(id=request.data["Store"])
             categories = Category.objects.filter(Store=store,IsDeleted=False)
             data = []
@@ -544,7 +544,7 @@ def GetStoreCategories(request):
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
         return custom_response(message="No Token Provided")
-    
+
 @api_view(['POST'])
 def GetCategoryProducts(request):
     User = get_user_model()
@@ -554,15 +554,17 @@ def GetCategoryProducts(request):
         user = User.objects.get(id=token_obj.user_id)
         User.objects.get(id=user.id)
         try:
-            category_id = 1  # Category ID to retrieve products from
-            category = Category.objects.get(id=category_id)
-            products = Product.objects.filter(Category=category)
+            category = Category.objects.get(id=request.data['Category'])
+            products = Product.objects.filter(Category=category,IsDeleted=False)
             data = []
             for product in products:
                 product_data = {
-                    "ProductName": product.Name,
+                    "id":product.pk,
+                    "Name": product.Name,
                     "Price": product.Price,
-                    "Quantity": product.Quantity
+                    "Decription": product.Decription,
+                    "Quantity": product.Quantity,
+                    "Image": product.Image.url
                 }
                 data.append(product_data)
             print(data)
@@ -593,7 +595,7 @@ def DeleteStore(request):
         token_obj = Token.objects.get(key=token)
         user = User.objects.get(id=token_obj.user_id)
         CurrentUser = User.objects.get(id=user.id)
-        try: 
+        try:
             store = Store.objects.get(id=request.data["Store"])
             store.IsDeleted=True
             store.DeletedBy=CurrentUser
@@ -617,7 +619,7 @@ def DeleteStore(request):
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
         return custom_response(message="No Token Provided")
-    
+
 @api_view(['POST'])
 def DeleteCategory(request):
     User = get_user_model()
@@ -626,7 +628,7 @@ def DeleteCategory(request):
         token_obj = Token.objects.get(key=token)
         user = User.objects.get(id=token_obj.user_id)
         CurrentUser = User.objects.get(id=user.id)
-        try: 
+        try:
             category = Category.objects.get(id=request.data["Category"])
             category.IsDeleted=True
             category.DeletedBy=CurrentUser
@@ -650,7 +652,7 @@ def DeleteCategory(request):
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
         return custom_response(message="No Token Provided")
-    
+
 @api_view(['POST'])
 def DeleteCategory(request):
     User = get_user_model()
@@ -659,7 +661,7 @@ def DeleteCategory(request):
         token_obj = Token.objects.get(key=token)
         user = User.objects.get(id=token_obj.user_id)
         CurrentUser = User.objects.get(id=user.id)
-        try: 
+        try:
             category = Category.objects.get(id=request.data["Category"])
             category.IsDeleted=True
             category.DeletedBy=CurrentUser
@@ -683,7 +685,7 @@ def DeleteCategory(request):
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
         return custom_response(message="No Token Provided")
-    
+
 @api_view(['POST'])
 def DeleteProduct(request):
     User = get_user_model()
@@ -692,7 +694,7 @@ def DeleteProduct(request):
         token_obj = Token.objects.get(key=token)
         user = User.objects.get(id=token_obj.user_id)
         CurrentUser = User.objects.get(id=user.id)
-        try: 
+        try:
             product = Product.objects.get(id=request.data["Product"])
             product.IsDeleted=True
             product.DeletedBy=CurrentUser
@@ -716,7 +718,7 @@ def DeleteProduct(request):
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
         return custom_response(message="No Token Provided")
-    
+
 @api_view(['POST'])
 def AddProductQuantity(request):
     User = get_user_model()
@@ -725,7 +727,7 @@ def AddProductQuantity(request):
         token_obj = Token.objects.get(key=token)
         user = User.objects.get(id=token_obj.user_id)
         CurrentUser = User.objects.get(id=user.id)
-        try: 
+        try:
             product = Product.objects.get(id=request.data["Product"])
             product.Quantity=request.data["Quantity"]
             product.UpdatedBy=CurrentUser
@@ -749,4 +751,4 @@ def AddProductQuantity(request):
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
         return custom_response(message="No Token Provided")
-    
+

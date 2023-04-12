@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-y*ah*!%n_+zuqfv5hd6ax)4h&lzfghf979n$nfi4ha8e79$nj2
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 
@@ -57,7 +57,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    
+
 ]
 
 ROOT_URLCONF = 'Zit_StoreManagerProject.urls'
@@ -84,22 +84,33 @@ WSGI_APPLICATION = 'Zit_StoreManagerProject.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'storemanagerdb',
-        'USER': 'aziz',
-        'PASSWORD': '957351',
-        'HOST': 'localhost',
-        'PORT': '3306',
-    }
-}
 # DATABASES = {
 #     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
+#         'ENGINE': 'mysql.connector.django',
+#         'NAME': 'vzzoz$storemanagerdb',
+#         'USER': 'vzzoz',
+#         'PASSWORD': 'ezoo221990',
+#         'HOST': 'vzzoz.mysql.pythonanywhere-services.com',
+#         'PORT': '',
 #     }
 # }
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'vzzoz$storemanagerdb',
+#         'USER': 'vzzoz',
+#         'PASSWORD': 'ezoo221990',
+#         'HOST': 'vzzoz.mysql.pythonanywhere-services.com',
+#         'PORT': '3306',
+#     }
+# }
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
 
 
 
