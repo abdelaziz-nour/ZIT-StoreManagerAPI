@@ -8,6 +8,7 @@ urlpatterns = [
     # authentication
     path('register', views.Register),
     path('login', views.Login),
+    path('adminlogin', views.AdminLogin),
 
     path('addstore', views.AddStore),
     path('addcategory', views.AddCategory),

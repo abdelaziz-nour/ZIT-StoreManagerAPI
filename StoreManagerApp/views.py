@@ -60,6 +60,25 @@ def Login(request):
         logging.warning(f"Exception Desc: {exception}")
         return custom_response(message="Authentication Failure")
 
+@api_view(['POST'])
+def AdminLogin(request):
+    try:
+        username = request.data["username"]
+        password = request.data["password"]
+        user = authenticate(username=username, password=password)
+        if user is not None and user.is_staff:  # Check if user is admin
+            token = Token.objects.get(user_id=user)
+
+            return custom_response(
+                data={'token': token.key},
+                success=True
+            )
+        else:
+            return custom_response(message="User Not Found")
+    except BaseException as exception:
+        logging.warning(f"Exception Name: {type(exception).__name__}")
+        logging.warning(f"Exception Desc: {exception}")
+        return custom_response(message="Authentication Failure")
 
 @api_view(['POST'])
 def AddStore(request):
@@ -69,21 +88,21 @@ def AddStore(request):
         token_obj = Token.objects.get(key=token)
         user = User.objects.get(id=token_obj.user_id)
         CurrentUser = User.objects.get(id=user.id)
-        try:
-            AddedStore = Store(
-                Owner=CurrentUser,
-                Name=request.data["Name"],
-                Image=request.FILES["Image"],
-                CreatedBy=CurrentUser,
-                CreatedOn=datetime.now()
-            )
-            AddedStore.save()
-            return custom_response(message="Adding Store Successfully", success=True)
+        # try:
+        AddedStore = Store(
+            Owner=User.objects.get(id=request.data["ID"]),
+            Name=request.data["Name"],
+            Image=request.FILES["Image"],
+            CreatedBy=CurrentUser,
+            CreatedOn=datetime.now()
+        )
+        AddedStore.save()
+        return custom_response(message="Adding Store Successfully", success=True)
 
-        except BaseException as exception:
-            logging.warning(f"Exception Name: {type(exception).__name__}")
-            logging.warning(f"Exception Desc: {exception}")
-            return custom_response(message="Adding Failure")
+        # except BaseException as exception:
+        #     logging.warning(f"Exception Name: {type(exception).__name__}")
+        #     logging.warning(f"Exception Desc: {exception}")
+        #     return custom_response(message="Adding Failure")
     except Token.DoesNotExist:
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
@@ -380,15 +399,16 @@ def GetUsers(request):
         user = User.objects.get(id=token_obj.user_id)
         User.objects.get(id=user.id)
         try:
-            Users=User.objects.all()
+            users = User.objects.all()
             data = []
-            for user in Users:
-                store=Store.objects.get(Owner=user.id)
+            for user in users:
+                store = Store.objects.filter(Owner=user.id).first()  # Use first() to get the first matching store, if any
                 field = {
                     "id": user.pk,
                     "UserName": user.username,
                     "Email": user.email,
-                    "Store": store.Name,
+                    "Store": store.Name if store else "",  # Use store.Name if store exists, otherwise None
+                    "StoreDeletion": store.IsDeleted,
                 }
                 data.append(field)
             print(data)
@@ -421,7 +441,7 @@ def GetStoreProducts(request):
         User.objects.get(id=user.id)
         try:
             store = Store.objects.get(id=request.data["Store"])
-            categories = Category.objects.filter(Store=store)
+            categories = Category.objects.filter(Store=store,IsDeleted=False)
             products = Product.objects.filter(Category__in=categories,IsDeleted=False)
             data = []
             for product in products:
@@ -430,6 +450,7 @@ def GetStoreProducts(request):
                     "Name": product.Name,
                     "Category": product.Category.Name,
                     "Price": product.Price,
+                    "Image":product.Image.url,
                 }
                 data.append(field)
             print(data)
