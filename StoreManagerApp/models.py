@@ -43,7 +43,7 @@ class Category(BaseFields):
 
 class Product(BaseFields):
     Name = models.CharField(max_length=50, blank=False, null=False)
-    Decription = models.CharField(max_length=50, blank=False, null=False)
+    Decription = models.TextField(max_length=255, blank=False, null=False)
     Price = models.CharField(max_length=50, blank=False, null=False)
     Quantity = models.IntegerField(blank=False, null=False)
     Image = models.ImageField(upload_to='Images/', height_field=None, width_field=None, max_length=None)
@@ -60,8 +60,11 @@ class OrderItem(models.Model):
 
 class Orders(BaseFields):
     Customer = models.ForeignKey(CustomUser, on_delete=models.CASCADE, blank=False, null=False)
-    Stores = models.ManyToManyField(Store, blank=False, null=False)
-    OrderItems = models.ManyToManyField(OrderItem, blank=False, null=False)
+    Stores = models.ManyToManyField(Store)
+    OrderItems = models.ManyToManyField(OrderItem)
+    Location = models.TextField(max_length=255, blank=False, null=False)
+    Status = models.CharField(choices=[('Preparing', 'Preparing'),
+    ('OnDelivery', 'OnDelivery'),('Delivered', 'Delivered'),],max_length=10,blank=False,null=False,default='Preparing')
     def __str__(self):
         return self.Customer.username
 

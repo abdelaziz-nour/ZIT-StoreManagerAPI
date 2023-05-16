@@ -103,14 +103,10 @@ def AddStore(request):
         #     logging.warning(f"Exception Name: {type(exception).__name__}")
         #     logging.warning(f"Exception Desc: {exception}")
         #     return custom_response(message="Adding Failure")
-    except Token.DoesNotExist:
+    except Token.DoesNotExist as exception:
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
         return custom_response(message="Token Does Not Exist")
-    except User.DoesNotExist:
-        logging.warning(f"Exception Name: {type(exception).__name__}")
-        logging.warning(f"Exception Desc: {exception}")
-        return custom_response(message="User With Provided Token Does Not Exist")
     except IndexError as exception:
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
@@ -140,14 +136,10 @@ def AddCategory(request):
             logging.warning(f"Exception Name: {type(exception).__name__}")
             logging.warning(f"Exception Desc: {exception}")
             return custom_response(message="Adding Failure")
-    except Token.DoesNotExist:
+    except Token.DoesNotExist as exception:
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
         return custom_response(message="Token Does Not Exist")
-    except User.DoesNotExist:
-        logging.warning(f"Exception Name: {type(exception).__name__}")
-        logging.warning(f"Exception Desc: {exception}")
-        return custom_response(message="User With Provided Token Does Not Exist")
     except IndexError as exception:
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
@@ -180,14 +172,10 @@ def AddProduct(request):
             logging.warning(f"Exception Name: {type(exception).__name__}")
             logging.warning(f"Exception Desc: {exception}")
             return custom_response(message="Adding Failure")
-    except Token.DoesNotExist:
+    except Token.DoesNotExist as exception:
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
         return custom_response(message="Token Does Not Exist")
-    except User.DoesNotExist:
-        logging.warning(f"Exception Name: {type(exception).__name__}")
-        logging.warning(f"Exception Desc: {exception}")
-        return custom_response(message="User With Provided Token Does Not Exist")
     except IndexError as exception:
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
@@ -205,9 +193,11 @@ def AddOrder(request):
             data = json.loads(request.body)
             products = data.get('OrderedProducts')
             amounts = data.get('Amounts')
+            location = data.get('Location')
 
             # Create the order and save it
             order = Orders(Customer=CurrentUser)
+            order.Location=location
             order.CreatedBy = CurrentUser
             order.CreatedOn = datetime.now()
             order.save()
@@ -244,18 +234,15 @@ def AddOrder(request):
             logging.warning(f"Exception Name: {type(exception).__name__}")
             logging.warning(f"Exception Desc: {exception}")
             return custom_response(message="Adding Failure")
-    except Token.DoesNotExist:
+    except Token.DoesNotExist as exception:
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
         return custom_response(message="Token Does Not Exist")
-    except User.DoesNotExist:
-        logging.warning(f"Exception Name: {type(exception).__name__}")
-        logging.warning(f"Exception Desc: {exception}")
-        return custom_response(message="User With Provided Token Does Not Exist")
     except IndexError as exception:
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
         return custom_response(message="No Token Provided")
+
 
 @api_view(['GET'])
 def GetStores(request):
@@ -283,14 +270,10 @@ def GetStores(request):
             logging.warning(f"Exception Name: {type(exception).__name__}")
             logging.warning(f"Exception Desc: {exception}")
             return custom_response(message="Getting Stores Failure")
-    except Token.DoesNotExist:
+    except Token.DoesNotExist as exception:
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
         return custom_response(message="Token Does Not Exist")
-    except User.DoesNotExist:
-        logging.warning(f"Exception Name: {type(exception).__name__}")
-        logging.warning(f"Exception Desc: {exception}")
-        return custom_response(message="User With Provided Token Does Not Exist")
     except IndexError as exception:
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
@@ -322,14 +305,10 @@ def GetProducts(request):
             logging.warning(f"Exception Name: {type(exception).__name__}")
             logging.warning(f"Exception Desc: {exception}")
             return custom_response(message="Getting Products Failure")
-    except Token.DoesNotExist:
+    except Token.DoesNotExist as exception:
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
         return custom_response(message="Token Does Not Exist")
-    except User.DoesNotExist:
-        logging.warning(f"Exception Name: {type(exception).__name__}")
-        logging.warning(f"Exception Desc: {exception}")
-        return custom_response(message="User With Provided Token Does Not Exist")
     except IndexError as exception:
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
@@ -352,6 +331,8 @@ def GetOrders(request):
                     order_data = {
                         "id": order.pk,
                         'Store': store.Name,
+                        'Status': order.Status,
+                        'Location': order.Location,
                         'CreatedBy': order.CreatedBy.username,
                         'CreatedOn': order.CreatedOn.strftime("%Y-%m-%d %H:%M:%S"),
                         'OrderItems': [],
@@ -377,14 +358,10 @@ def GetOrders(request):
             logging.warning(f"Exception Name: {type(exception).__name__}")
             logging.warning(f"Exception Desc: {exception}")
             return custom_response(message="Getting Products Failure")
-    except Token.DoesNotExist:
+    except Token.DoesNotExist as exception:
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
         return custom_response(message="Token Does Not Exist")
-    except User.DoesNotExist:
-        logging.warning(f"Exception Name: {type(exception).__name__}")
-        logging.warning(f"Exception Desc: {exception}")
-        return custom_response(message="User With Provided Token Does Not Exist")
     except IndexError as exception:
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
@@ -418,14 +395,10 @@ def GetUsers(request):
             logging.warning(f"Exception Name: {type(exception).__name__}")
             logging.warning(f"Exception Desc: {exception}")
             return custom_response(message="Getting Users Failure")
-    except Token.DoesNotExist:
+    except Token.DoesNotExist as exception:
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
         return custom_response(message="Token Does Not Exist")
-    except User.DoesNotExist:
-        logging.warning(f"Exception Name: {type(exception).__name__}")
-        logging.warning(f"Exception Desc: {exception}")
-        return custom_response(message="User With Provided Token Does Not Exist")
     except IndexError as exception:
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
@@ -460,14 +433,10 @@ def GetStoreProducts(request):
             logging.warning(f"Exception Name: {type(exception).__name__}")
             logging.warning(f"Exception Desc: {exception}")
             return custom_response(message="Getting Products Failure")
-    except Token.DoesNotExist:
+    except Token.DoesNotExist as exception:
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
         return custom_response(message="Token Does Not Exist")
-    except User.DoesNotExist:
-        logging.warning(f"Exception Name: {type(exception).__name__}")
-        logging.warning(f"Exception Desc: {exception}")
-        return custom_response(message="User With Provided Token Does Not Exist")
     except IndexError as exception:
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
@@ -489,6 +458,8 @@ def GetStoreOrders(request):
             for order in orders:
                 order_data = {
                     "id": order.pk,
+                    "Status": order.Status,
+                    "Location": order.Location,
                     'CreatedBy': order.CreatedBy.username,
                     'CreatedOn': order.CreatedOn.strftime("%Y-%m-%d %H:%M:%S"),
                     'OrderItems': [],
@@ -514,14 +485,10 @@ def GetStoreOrders(request):
             logging.warning(f"Exception Name: {type(exception).__name__}")
             logging.warning(f"Exception Desc: {exception}")
             return custom_response(message="Getting Store Orders Failure")
-    except Token.DoesNotExist:
+    except Token.DoesNotExist as exception:
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
         return custom_response(message="Token Does Not Exist")
-    except User.DoesNotExist:
-        logging.warning(f"Exception Name: {type(exception).__name__}")
-        logging.warning(f"Exception Desc: {exception}")
-        return custom_response(message="User With Provided Token Does Not Exist")
     except IndexError as exception:
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
@@ -553,14 +520,10 @@ def GetStoreCategories(request):
             logging.warning(f"Exception Name: {type(exception).__name__}")
             logging.warning(f"Exception Desc: {exception}")
             return custom_response(message="Getting Store Categories Failure")
-    except Token.DoesNotExist:
+    except Token.DoesNotExist as exception:
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
         return custom_response(message="Token Does Not Exist")
-    except User.DoesNotExist:
-        logging.warning(f"Exception Name: {type(exception).__name__}")
-        logging.warning(f"Exception Desc: {exception}")
-        return custom_response(message="User With Provided Token Does Not Exist")
     except IndexError as exception:
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
@@ -595,14 +558,10 @@ def GetCategoryProducts(request):
             logging.warning(f"Exception Name: {type(exception).__name__}")
             logging.warning(f"Exception Desc: {exception}")
             return custom_response(message="Category with provided ID does not exist")
-    except Token.DoesNotExist:
+    except Token.DoesNotExist as exception:
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
         return custom_response(message="Token does not exist")
-    except User.DoesNotExist:
-        logging.warning(f"Exception Name: {type(exception).__name__}")
-        logging.warning(f"Exception Desc: {exception}")
-        return custom_response(message="User with provided token does not exist")
     except IndexError as exception:
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
@@ -628,14 +587,10 @@ def DeleteStore(request):
             logging.warning(f"Exception Name: {type(exception).__name__}")
             logging.warning(f"Exception Desc: {exception}")
             return custom_response(message="Deletng Store Failure")
-    except Token.DoesNotExist:
+    except Token.DoesNotExist as exception:
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
         return custom_response(message="Token Does Not Exist")
-    except User.DoesNotExist:
-        logging.warning(f"Exception Name: {type(exception).__name__}")
-        logging.warning(f"Exception Desc: {exception}")
-        return custom_response(message="User With Provided Token Does Not Exist")
     except IndexError as exception:
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
@@ -661,14 +616,10 @@ def DeleteCategory(request):
             logging.warning(f"Exception Name: {type(exception).__name__}")
             logging.warning(f"Exception Desc: {exception}")
             return custom_response(message="Deletng Store Failure")
-    except Token.DoesNotExist:
+    except Token.DoesNotExist as exception:
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
         return custom_response(message="Token Does Not Exist")
-    except User.DoesNotExist:
-        logging.warning(f"Exception Name: {type(exception).__name__}")
-        logging.warning(f"Exception Desc: {exception}")
-        return custom_response(message="User With Provided Token Does Not Exist")
     except IndexError as exception:
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
@@ -694,14 +645,10 @@ def DeleteCategory(request):
             logging.warning(f"Exception Name: {type(exception).__name__}")
             logging.warning(f"Exception Desc: {exception}")
             return custom_response(message="Deletng Category Failure")
-    except Token.DoesNotExist:
+    except Token.DoesNotExist as exception:
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
         return custom_response(message="Token Does Not Exist")
-    except User.DoesNotExist:
-        logging.warning(f"Exception Name: {type(exception).__name__}")
-        logging.warning(f"Exception Desc: {exception}")
-        return custom_response(message="User With Provided Token Does Not Exist")
     except IndexError as exception:
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
@@ -727,14 +674,10 @@ def DeleteProduct(request):
             logging.warning(f"Exception Name: {type(exception).__name__}")
             logging.warning(f"Exception Desc: {exception}")
             return custom_response(message="Deletng Product Failure")
-    except Token.DoesNotExist:
+    except Token.DoesNotExist as exception:
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
         return custom_response(message="Token Does Not Exist")
-    except User.DoesNotExist:
-        logging.warning(f"Exception Name: {type(exception).__name__}")
-        logging.warning(f"Exception Desc: {exception}")
-        return custom_response(message="User With Provided Token Does Not Exist")
     except IndexError as exception:
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
@@ -760,16 +703,49 @@ def AddProductQuantity(request):
             logging.warning(f"Exception Name: {type(exception).__name__}")
             logging.warning(f"Exception Desc: {exception}")
             return custom_response(message="Adding Product Quantity Failure")
-    except Token.DoesNotExist:
+    except Token.DoesNotExist as exception:
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
         return custom_response(message="Token Does Not Exist")
-    except User.DoesNotExist:
-        logging.warning(f"Exception Name: {type(exception).__name__}")
-        logging.warning(f"Exception Desc: {exception}")
-        return custom_response(message="User With Provided Token Does Not Exist")
     except IndexError as exception:
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
         return custom_response(message="No Token Provided")
 
+@api_view(['POST'])
+def ChangeOrderStatus(request):
+    User = get_user_model()
+    try:
+        token = request.META.get('HTTP_AUTHORIZATION', '').split(' ')[1]
+        token_obj = Token.objects.get(key=token)
+        user = User.objects.get(id=token_obj.user_id)
+        CurrentUser = User.objects.get(id=user.id)
+        try:
+            order = Orders.objects.get(id=request.data["Order"])
+            print(request.data["Status"])
+            if request.data["Status"]=='OnDelivery':
+                order.Status='OnDelivery'
+                order.UpdatedBy=CurrentUser
+                order.UpdatedOn=datetime.now()
+                order.save()
+                return custom_response(message='Order Status Changed Successfully', success=True)
+            elif request.data["Status"]=='Delivered':
+                order.Status='Delivered'
+                order.UpdatedBy=CurrentUser
+                order.UpdatedOn=datetime.now()
+                order.save()
+                return custom_response(message='Order Status Changed Successfully', success=True)
+            else :
+                return custom_response(message="Invalid Order Status")
+        except BaseException as exception:
+            logging.warning(f"Exception Name: {type(exception).__name__}")
+            logging.warning(f"Exception Desc: {exception}")
+            return custom_response(message="Changing Order Status Failure")
+    except Token.DoesNotExist as exception:
+        logging.warning(f"Exception Name: {type(exception).__name__}")
+        logging.warning(f"Exception Desc: {exception}")
+        return custom_response(message="Token Does Not Exist")
+    except IndexError as exception:
+        logging.warning(f"Exception Name: {type(exception).__name__}")
+        logging.warning(f"Exception Desc: {exception}")
+        return custom_response(message="No Token Provided")

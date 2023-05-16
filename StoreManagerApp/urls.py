@@ -30,4 +30,5 @@ urlpatterns = [
     path('deleteproduct', views.DeleteProduct),
 
     path('addproductquantity', views.AddProductQuantity),
+    path('changeorderstatus', views.ChangeOrderStatus),
     ]
