@@ -148,14 +148,21 @@ def StoreManagerLogin(request):
         password = request.data["password"]
         user = authenticate(username=username, password=password)
         if user is not None and user.is_staff or user.IsStoreManager:
+            try :
+                store =Store.objects.get(Owner=user.id)
+            except BaseException as exception:
+                return custom_response(message="User Does Not Have A Store")
             token = Token.objects.get(user_id=user)
-
             return custom_response(
-                data={'token': token.key},
+                data={'token': token.key,
+                    'StoreName':store.Name,
+                    'StoreID':store.pk},
                 success=True
             )
+            
         else:
-            return custom_response(message="User Not Found")
+            return custom_response(message="No Store Manager Account Match Giving Credentials")
+
     except BaseException as exception:
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
