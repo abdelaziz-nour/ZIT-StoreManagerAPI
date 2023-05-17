@@ -13,32 +13,93 @@ import json
 def index(request):
     return HttpResponse("Hello, world. You're at the polls index.")
 
-
 @api_view(['post'])
 def Register(request):
     try:
-        user = CustomUser.objects.create_user(
-            username=request.data["username"],
-            email=request.data["email"],
-            PhoneNumber=request.data["PhoneNumber"],
-            Gender=request.data["Gender"],
-            password=request.data["password"],
-        )
-        if user:
-            token = Token.objects.create(user=user)
-            return custom_response(
-                data={
-                    'token': token.key,
-                },
-                success=True,
+        if 'IsStoreManager' in request.data:
+            user = CustomUser.objects.create_user(
+                username=request.data["username"],
+                email=request.data["email"],
+                PhoneNumber=request.data["PhoneNumber"],
+                Gender=request.data["Gender"],
+                IsStoreManager=True,
+                password=request.data["password"],
             )
+            if user:
+                token = Token.objects.create(user=user)
+                return custom_response(
+                    data={
+                        'token': token.key,
+                    },
+                    success=True,
+                )
+            else:
+                return custom_response(message="User account not created")
+
+        elif 'IsAdvertiser' in request.data:
+            user = CustomUser.objects.create_user(
+                username=request.data["username"],
+                email=request.data["email"],
+                PhoneNumber=request.data["PhoneNumber"],
+                Gender=request.data["Gender"],
+                IsAdvertiser=True,
+                password=request.data["password"],
+            )
+            if user:
+                token = Token.objects.create(user=user)
+                return custom_response(
+                    data={
+                        'token': token.key,
+                    },
+                    success=True,
+                )
+            else:
+                return custom_response(message="User account not created")
+
+        elif 'IsAdmin' in request.data:
+            user = CustomUser.objects.create_user(
+                username=request.data["username"],
+                email=request.data["email"],
+                PhoneNumber=request.data["PhoneNumber"],
+                Gender=request.data["Gender"],
+                IsAdmin=True,
+                password=request.data["password"],
+            )
+            if user:
+                token = Token.objects.create(user=user)
+                return custom_response(
+                    data={
+                        'token': token.key,
+                    },
+                    success=True,
+                )
+            else:
+                return custom_response(message="User account not created")
+
         else:
-            return custom_response(message="User account not created")
+            user = CustomUser.objects.create_user(
+                username=request.data["username"],
+                email=request.data["email"],
+                PhoneNumber=request.data["PhoneNumber"],
+                Gender=request.data["Gender"],
+                IsSimpleUser=True,
+                password=request.data["password"],
+            )
+            if user:
+                token = Token.objects.create(user=user)
+                return custom_response(
+                    data={
+                        'token': token.key,
+                    },
+                    success=True,
+                )
+            else:
+                return custom_response(message="User account not created")
 
     except BaseException as exception:
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
-        return custom_response(message="something went wrong")
+        return custom_response(message="Something went wrong")
 
 @api_view(['POST'])
 def Login(request):
@@ -46,7 +107,7 @@ def Login(request):
         username = request.data["username"]
         password = request.data["password"]
         user = authenticate(username=username, password=password)
-        if user is not None:
+        if user is not None and user.IsSimpleUser or user.is_staff:
             token = Token.objects.get(user_id=user)
 
             return custom_response(
@@ -66,7 +127,27 @@ def AdminLogin(request):
         username = request.data["username"]
         password = request.data["password"]
         user = authenticate(username=username, password=password)
-        if user is not None and user.is_staff:  # Check if user is admin
+        if user is not None and user.is_staff or user.IsAdmin:
+            token = Token.objects.get(user_id=user)
+
+            return custom_response(
+                data={'token': token.key},
+                success=True
+            )
+        else:
+            return custom_response(message="User Not Found")
+    except BaseException as exception:
+        logging.warning(f"Exception Name: {type(exception).__name__}")
+        logging.warning(f"Exception Desc: {exception}")
+        return custom_response(message="Authentication Failure")
+
+@api_view(['POST'])
+def StoreManagerLogin(request):
+    try:
+        username = request.data["username"]
+        password = request.data["password"]
+        user = authenticate(username=username, password=password)
+        if user is not None and user.is_staff or user.IsStoreManager:
             token = Token.objects.get(user_id=user)
 
             return custom_response(
@@ -88,7 +169,6 @@ def AddStore(request):
         token_obj = Token.objects.get(key=token)
         user = User.objects.get(id=token_obj.user_id)
         CurrentUser = User.objects.get(id=user.id)
-        # try:
         AddedStore = Store(
             Owner=User.objects.get(id=request.data["ID"]),
             Name=request.data["Name"],
@@ -98,11 +178,6 @@ def AddStore(request):
         )
         AddedStore.save()
         return custom_response(message="Adding Store Successfully", success=True)
-
-        # except BaseException as exception:
-        #     logging.warning(f"Exception Name: {type(exception).__name__}")
-        #     logging.warning(f"Exception Desc: {exception}")
-        #     return custom_response(message="Adding Failure")
     except Token.DoesNotExist as exception:
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
@@ -197,7 +272,7 @@ def AddOrder(request):
 
             # Create the order and save it
             order = Orders(Customer=CurrentUser)
-            order.Location=location
+            order.Location = location
             order.CreatedBy = CurrentUser
             order.CreatedOn = datetime.now()
             order.save()
@@ -208,17 +283,18 @@ def AddOrder(request):
                     # If there is enough quantity, create a new OrderItem instance and add it to the order
                     product.Quantity -= amounts[i]
                     product.save()
-                    ordereditem = OrderItem(Product=product, Quantity=amounts[i])
+                    ordereditem = OrderItem(
+                        Product=product, Quantity=amounts[i])
                     ordereditem.save()
                     order.OrderItems.add(ordereditem)
                 else:
                     # If there is not enough quantity, return an error response
                     return custom_response(message="Insufficient Amount Of Product",
-                                            data={
-                                                "Product": product.Name,
-                                                "AvailableAmount": product.Quantity,
-                                                "OrederedAmount":amounts[i]
-                                            })
+                                           data={
+                                               "Product": product.Name,
+                                               "AvailableAmount": product.Quantity,
+                                               "OrederedAmount": amounts[i]
+                                           })
 
             # Get the categories associated with the ordered products
             categories = Category.objects.filter(products__id__in=products)
@@ -228,7 +304,6 @@ def AddOrder(request):
 
             order.Stores.add(*stores)
             return custom_response(message="Adding Order Successfully", success=True)
-
 
         except BaseException as exception:
             logging.warning(f"Exception Name: {type(exception).__name__}")
@@ -243,7 +318,6 @@ def AddOrder(request):
         logging.warning(f"Exception Desc: {exception}")
         return custom_response(message="No Token Provided")
 
-
 @api_view(['GET'])
 def GetStores(request):
     User = get_user_model()
@@ -253,7 +327,7 @@ def GetStores(request):
         user = User.objects.get(id=token_obj.user_id)
         User.objects.get(id=user.id)
         try:
-            Stores=Store.objects.filter(IsDeleted=False)
+            Stores = Store.objects.filter(IsDeleted=False)
             data = []
             for store in Stores:
                 field = {
@@ -288,7 +362,7 @@ def GetProducts(request):
         user = User.objects.get(id=token_obj.user_id)
         User.objects.get(id=user.id)
         try:
-            Products=Product.objects.filter(IsDeleted=False)
+            Products = Product.objects.filter(IsDeleted=False)
             data = []
             for product in Products:
                 field = {
@@ -348,10 +422,11 @@ def GetOrders(request):
                                 'Subtotal': int(product.Price) * int(order_item.Quantity)
                             }
                             order_data['OrderItems'].append(item_data)
-                            subtotal = int(product.Price) * int(order_item.Quantity)
+                            subtotal = int(product.Price) * \
+                                int(order_item.Quantity)
                             total += subtotal
                     data.append(order_data)
-            data.append({'Total':total})
+            data.append({'Total': total})
             return custom_response(data=data, success=True)
 
         except BaseException as exception:
@@ -379,12 +454,14 @@ def GetUsers(request):
             users = User.objects.all()
             data = []
             for user in users:
-                store = Store.objects.filter(Owner=user.id).first()  # Use first() to get the first matching store, if any
+                # Use first() to get the first matching store, if any
+                store = Store.objects.filter(Owner=user.id).first()
                 field = {
                     "id": user.pk,
                     "UserName": user.username,
                     "Email": user.email,
-                    "Store": store.Name if store else "",  # Use store.Name if store exists, otherwise None
+                    # Use store.Name if store exists, otherwise None
+                    "Store": store.Name if store else "",
                     "StoreDeletion": store.IsDeleted,
                 }
                 data.append(field)
@@ -414,8 +491,9 @@ def GetStoreProducts(request):
         User.objects.get(id=user.id)
         try:
             store = Store.objects.get(id=request.data["Store"])
-            categories = Category.objects.filter(Store=store,IsDeleted=False)
-            products = Product.objects.filter(Category__in=categories,IsDeleted=False)
+            categories = Category.objects.filter(Store=store, IsDeleted=False)
+            products = Product.objects.filter(
+                Category__in=categories, IsDeleted=False)
             data = []
             for product in products:
                 field = {
@@ -423,7 +501,7 @@ def GetStoreProducts(request):
                     "Name": product.Name,
                     "Category": product.Category.Name,
                     "Price": product.Price,
-                    "Image":product.Image.url,
+                    "Image": product.Image.url,
                 }
                 data.append(field)
             print(data)
@@ -475,10 +553,11 @@ def GetStoreOrders(request):
                             'Subtotal': int(product.Price) * int(order_item.Quantity)
                         }
                         order_data['OrderItems'].append(item_data)
-                        subtotal = int(product.Price) * int(order_item.Quantity)
+                        subtotal = int(product.Price) * \
+                            int(order_item.Quantity)
                         total += subtotal
                 data.append(order_data)
-            data.append({'Total':total})
+            data.append({'Total': total})
             return custom_response(data=data, success=True)
 
         except BaseException as exception:
@@ -504,7 +583,7 @@ def GetStoreCategories(request):
         User.objects.get(id=user.id)
         try:
             store = Store.objects.get(id=request.data["Store"])
-            categories = Category.objects.filter(Store=store,IsDeleted=False)
+            categories = Category.objects.filter(Store=store, IsDeleted=False)
             data = []
             for category in categories:
                 field = {
@@ -539,11 +618,12 @@ def GetCategoryProducts(request):
         User.objects.get(id=user.id)
         try:
             category = Category.objects.get(id=request.data['Category'])
-            products = Product.objects.filter(Category=category,IsDeleted=False)
+            products = Product.objects.filter(
+                Category=category, IsDeleted=False)
             data = []
             for product in products:
                 product_data = {
-                    "id":product.pk,
+                    "id": product.pk,
                     "Name": product.Name,
                     "Price": product.Price,
                     "Decription": product.Decription,
@@ -577,9 +657,9 @@ def DeleteStore(request):
         CurrentUser = User.objects.get(id=user.id)
         try:
             store = Store.objects.get(id=request.data["Store"])
-            store.IsDeleted=True
-            store.DeletedBy=CurrentUser
-            store.DeletedOn=datetime.now()
+            store.IsDeleted = True
+            store.DeletedBy = CurrentUser
+            store.DeletedOn = datetime.now()
             store.save()
             return custom_response(message='Store Deleted Successfully', success=True)
 
@@ -606,45 +686,16 @@ def DeleteCategory(request):
         CurrentUser = User.objects.get(id=user.id)
         try:
             category = Category.objects.get(id=request.data["Category"])
-            category.IsDeleted=True
-            category.DeletedBy=CurrentUser
-            category.DeletedOn=datetime.now()
+            category.IsDeleted = True
+            category.DeletedBy = CurrentUser
+            category.DeletedOn = datetime.now()
             category.save()
             return custom_response(message='Store Category Successfully', success=True)
 
         except BaseException as exception:
             logging.warning(f"Exception Name: {type(exception).__name__}")
             logging.warning(f"Exception Desc: {exception}")
-            return custom_response(message="Deletng Store Failure")
-    except Token.DoesNotExist as exception:
-        logging.warning(f"Exception Name: {type(exception).__name__}")
-        logging.warning(f"Exception Desc: {exception}")
-        return custom_response(message="Token Does Not Exist")
-    except IndexError as exception:
-        logging.warning(f"Exception Name: {type(exception).__name__}")
-        logging.warning(f"Exception Desc: {exception}")
-        return custom_response(message="No Token Provided")
-
-@api_view(['POST'])
-def DeleteCategory(request):
-    User = get_user_model()
-    try:
-        token = request.META.get('HTTP_AUTHORIZATION', '').split(' ')[1]
-        token_obj = Token.objects.get(key=token)
-        user = User.objects.get(id=token_obj.user_id)
-        CurrentUser = User.objects.get(id=user.id)
-        try:
-            category = Category.objects.get(id=request.data["Category"])
-            category.IsDeleted=True
-            category.DeletedBy=CurrentUser
-            category.DeletedOn=datetime.now()
-            category.save()
-            return custom_response(message='Store Category Successfully', success=True)
-
-        except BaseException as exception:
-            logging.warning(f"Exception Name: {type(exception).__name__}")
-            logging.warning(f"Exception Desc: {exception}")
-            return custom_response(message="Deletng Category Failure")
+            return custom_response(message="Deleting Category Failure")
     except Token.DoesNotExist as exception:
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
@@ -664,9 +715,9 @@ def DeleteProduct(request):
         CurrentUser = User.objects.get(id=user.id)
         try:
             product = Product.objects.get(id=request.data["Product"])
-            product.IsDeleted=True
-            product.DeletedBy=CurrentUser
-            product.DeletedOn=datetime.now()
+            product.IsDeleted = True
+            product.DeletedBy = CurrentUser
+            product.DeletedOn = datetime.now()
             product.save()
             return custom_response(message='Store Product Successfully', success=True)
 
@@ -693,9 +744,9 @@ def AddProductQuantity(request):
         CurrentUser = User.objects.get(id=user.id)
         try:
             product = Product.objects.get(id=request.data["Product"])
-            product.Quantity=request.data["Quantity"]
-            product.UpdatedBy=CurrentUser
-            product.UpdatedOn=datetime.now()
+            product.Quantity = request.data["Quantity"]
+            product.UpdatedBy = CurrentUser
+            product.UpdatedOn = datetime.now()
             product.save()
             return custom_response(message='Product Add Quantity Successfully', success=True)
 
@@ -723,19 +774,25 @@ def ChangeOrderStatus(request):
         try:
             order = Orders.objects.get(id=request.data["Order"])
             print(request.data["Status"])
-            if request.data["Status"]=='OnDelivery':
-                order.Status='OnDelivery'
-                order.UpdatedBy=CurrentUser
-                order.UpdatedOn=datetime.now()
+            if request.data["Status"] == 'OnDelivery':
+                order.Status = 'OnDelivery'
+                order.UpdatedBy = CurrentUser
+                order.UpdatedOn = datetime.now()
                 order.save()
                 return custom_response(message='Order Status Changed Successfully', success=True)
-            elif request.data["Status"]=='Delivered':
-                order.Status='Delivered'
-                order.UpdatedBy=CurrentUser
-                order.UpdatedOn=datetime.now()
+            elif request.data["Status"] == 'Delivered':
+                order.Status = 'Delivered'
+                order.UpdatedBy = CurrentUser
+                order.UpdatedOn = datetime.now()
                 order.save()
                 return custom_response(message='Order Status Changed Successfully', success=True)
-            else :
+            elif request.data["Status"] == 'Canceled':
+                order.Status = 'Canceled'
+                order.UpdatedBy = CurrentUser
+                order.UpdatedOn = datetime.now()
+                order.save()
+                return custom_response(message='Order Status Changed Successfully', success=True)
+            else:
                 return custom_response(message="Invalid Order Status")
         except BaseException as exception:
             logging.warning(f"Exception Name: {type(exception).__name__}")

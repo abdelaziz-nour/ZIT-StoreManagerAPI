@@ -6,6 +6,10 @@ class CustomUser(AbstractUser):
     PhoneNumber = models.CharField(max_length=20,blank=False,null=False)
     Gender = models.CharField(choices=[('Male', 'Male'),
     ('Female', 'Female'),],max_length=10,blank=False,null=False)
+    IsStoreManager= models.BooleanField(default=False)
+    IsAdmin= models.BooleanField(default=False)
+    IsSimpleUser= models.BooleanField(default=False)
+    IsAdvertiser= models.BooleanField(default=False)
     def __str__(self):
         return self.username
 
@@ -64,7 +68,7 @@ class Orders(BaseFields):
     OrderItems = models.ManyToManyField(OrderItem)
     Location = models.TextField(max_length=255, blank=False, null=False)
     Status = models.CharField(choices=[('Preparing', 'Preparing'),
-    ('OnDelivery', 'OnDelivery'),('Delivered', 'Delivered'),],max_length=10,blank=False,null=False,default='Preparing')
+    ('OnDelivery', 'OnDelivery'),('Delivered', 'Delivered'),('Canceled', 'Canceled'),],max_length=10,blank=False,null=False,default='Preparing')
     def __str__(self):
         return self.Customer.username
 

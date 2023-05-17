@@ -6,29 +6,30 @@ urlpatterns = [
     path('index', views.index, name='index'),
 
     # authentication
-    path('register', views.Register),
-    path('login', views.Login),
-    path('adminlogin', views.AdminLogin),
+    path('register', views.Register),#zit
+    path('login', views.Login),#zit
+    path('adminlogin', views.AdminLogin),#web
+    path('storemanagerlogin', views.StoreManagerLogin),#sma
 
-    path('addstore', views.AddStore),
-    path('addcategory', views.AddCategory),
-    path('addproduct', views.AddProduct),
-    path('addorder', views.AddOrder),
+    path('addstore', views.AddStore),#web
+    path('addcategory', views.AddCategory),#sma
+    path('addproduct', views.AddProduct),#sma
+    path('addorder', views.AddOrder),#zit
 
-    path('getusers', views.GetUsers),
-    path('getstores', views.GetStores),
-    path('getproducts', views.GetProducts),
-    path('getorders', views.GetOrders),
+    path('getusers', views.GetUsers),#web
+    path('getstores', views.GetStores),#web
+    path('getproducts', views.GetProducts),#web
+    path('getorders', views.GetOrders),#web
 
-    path('getstorecategories', views.GetStoreCategories),
-    path('getcategoryproducts', views.GetCategoryProducts),
-    path('getstoreproducts', views.GetStoreProducts),
-    path('getstoreorders', views.GetStoreOrders),
+    path('getstorecategories', views.GetStoreCategories),#zit-sma-web
+    path('getcategoryproducts', views.GetCategoryProducts),#zit-sma-web
+    path('getstoreproducts', views.GetStoreProducts),#web
+    path('getstoreorders', views.GetStoreOrders),#sma-web
 
-    path('deletestore', views.DeleteStore),
-    path('deletecategory', views.DeleteCategory),
-    path('deleteproduct', views.DeleteProduct),
+    path('deletestore', views.DeleteStore),#web
+    path('deletecategory', views.DeleteCategory),#web-sma
+    path('deleteproduct', views.DeleteProduct),#sma
 
-    path('addproductquantity', views.AddProductQuantity),
-    path('changeorderstatus', views.ChangeOrderStatus),
+    path('addproductquantity', views.AddProductQuantity),#sma
+    path('changeorderstatus', views.ChangeOrderStatus),#sma
     ]
