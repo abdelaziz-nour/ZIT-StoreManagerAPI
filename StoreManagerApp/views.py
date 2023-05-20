@@ -156,7 +156,7 @@ def StoreManagerLogin(request):
             return custom_response(
                 data={'token': token.key,
                     'StoreName':store.Name,
-                    'StoreID':store.pk},
+                    'StoreID':store.StoreID},
                 success=True
             )
             
@@ -177,7 +177,7 @@ def AddStore(request):
         user = User.objects.get(id=token_obj.user_id)
         CurrentUser = User.objects.get(id=user.id)
         AddedStore = Store(
-            Owner=User.objects.get(id=request.data["ID"]),
+            Owner=User.objects.get(email=request.data["Email"]),
             Name=request.data["Name"],
             Image=request.FILES["Image"],
             CreatedBy=CurrentUser,
@@ -236,10 +236,10 @@ def AddProduct(request):
         user = User.objects.get(id=token_obj.user_id)
         CurrentUser = User.objects.get(id=user.id)
         try:
-            category = Category.objects.get(id=request.data.get('Category'))
+            category = Category.objects.get(CategoryID=request.data.get('Category'))
             AddedProduct = Product(
                 Name=request.data["Name"],
-                Decription=request.data["Decription"],
+                Description=request.data["Description"],
                 Price=request.data["Price"],
                 Quantity=request.data["Quantity"],
                 Category=category,
@@ -282,10 +282,10 @@ def AddOrder(request):
             order.Location = location
             order.CreatedBy = CurrentUser
             order.CreatedOn = datetime.now()
-            order.save()
+            
 
             for i, product_id in enumerate(products):
-                product = Product.objects.get(pk=product_id)
+                product = Product.objects.get(ProductID=product_id)
                 if product.Quantity - amounts[i] >= 0:
                     # If there is enough quantity, create a new OrderItem instance and add it to the order
                     product.Quantity -= amounts[i]
@@ -293,6 +293,7 @@ def AddOrder(request):
                     ordereditem = OrderItem(
                         Product=product, Quantity=amounts[i])
                     ordereditem.save()
+                    order.save()
                     order.OrderItems.add(ordereditem)
                 else:
                     # If there is not enough quantity, return an error response
@@ -300,11 +301,11 @@ def AddOrder(request):
                                            data={
                                                "Product": product.Name,
                                                "AvailableAmount": product.Quantity,
-                                               "OrederedAmount": amounts[i]
+                                               "OrderedAmount": amounts[i]
                                            })
 
             # Get the categories associated with the ordered products
-            categories = Category.objects.filter(products__id__in=products)
+            categories = Category.objects.filter(products__ProductID__in=products)
 
             # Get the stores associated with the categories
             stores = categories.values_list('Store', flat=True).distinct()
@@ -338,7 +339,7 @@ def GetStores(request):
             data = []
             for store in Stores:
                 field = {
-                    "id": store.pk,
+                    "id": store.StoreID,
                     "Owner": store.Owner.username,
                     "Name": store.Name,
                     "Image": store.Image.url,
@@ -373,7 +374,7 @@ def GetProducts(request):
             data = []
             for product in Products:
                 field = {
-                    "id": product.pk,
+                    "id": product.ProductID,
                     "Store": product.Category.Store.Name,
                     "Name": product.Name,
                     "Image": product.Image.url,
@@ -410,7 +411,7 @@ def GetOrders(request):
             for order in orders:
                 for store in order.Stores.all():
                     order_data = {
-                        "id": order.pk,
+                        "id": order.OrderID,
                         'Store': store.Name,
                         'Status': order.Status,
                         'Location': order.Location,
@@ -423,6 +424,7 @@ def GetOrders(request):
                         product = order_item.Product
                         if product.Category.Store == store:
                             item_data = {
+                                "id": product.ProductID,
                                 'ProductName': product.Name,
                                 'Price': product.Price,
                                 'Quantity': order_item.Quantity,
@@ -497,14 +499,14 @@ def GetStoreProducts(request):
         user = User.objects.get(id=token_obj.user_id)
         User.objects.get(id=user.id)
         try:
-            store = Store.objects.get(id=request.data["Store"])
+            store = Store.objects.get(StoreID=request.data["Store"])
             categories = Category.objects.filter(Store=store, IsDeleted=False)
             products = Product.objects.filter(
                 Category__in=categories, IsDeleted=False)
             data = []
             for product in products:
                 field = {
-                    "id": product.pk,
+                    "id": product.ProductID,
                     "Name": product.Name,
                     "Category": product.Category.Name,
                     "Price": product.Price,
@@ -536,13 +538,13 @@ def GetStoreOrders(request):
         user = User.objects.get(id=token_obj.user_id)
         User.objects.get(id=user.id)
         try:
-            store = Store.objects.get(id=request.data["Store"])
+            store = Store.objects.get(StoreID=request.data["Store"])
             orders = Orders.objects.filter(Stores=store)
             data = []
             total = 0
             for order in orders:
                 order_data = {
-                    "id": order.pk,
+                    "id": order.OrderID,
                     "Status": order.Status,
                     "Location": order.Location,
                     'CreatedBy': order.CreatedBy.username,
@@ -554,6 +556,7 @@ def GetStoreOrders(request):
                     product = order_item.Product
                     if product.Category.Store == store:
                         item_data = {
+                            "id": product.ProductID,
                             'ProductName': product.Name,
                             'Price': product.Price,
                             'Quantity': order_item.Quantity,
@@ -589,12 +592,12 @@ def GetStoreCategories(request):
         user = User.objects.get(id=token_obj.user_id)
         User.objects.get(id=user.id)
         try:
-            store = Store.objects.get(id=request.data["Store"])
+            store = Store.objects.get(StoreID=request.data["Store"])
             categories = Category.objects.filter(Store=store, IsDeleted=False)
             data = []
             for category in categories:
                 field = {
-                    "id": category.pk,
+                    "id": category.CategoryID,
                     "Name": category.Name,
                     "Image": category.Image.url,
                 }
@@ -624,16 +627,16 @@ def GetCategoryProducts(request):
         user = User.objects.get(id=token_obj.user_id)
         User.objects.get(id=user.id)
         try:
-            category = Category.objects.get(id=request.data['Category'])
+            category = Category.objects.get(CategoryID=request.data['Category'])
             products = Product.objects.filter(
                 Category=category, IsDeleted=False)
             data = []
             for product in products:
                 product_data = {
-                    "id": product.pk,
+                    "id": product.ProductID,
                     "Name": product.Name,
                     "Price": product.Price,
-                    "Decription": product.Decription,
+                    "Description": product.Description,
                     "Quantity": product.Quantity,
                     "Image": product.Image.url
                 }
@@ -663,7 +666,7 @@ def DeleteStore(request):
         user = User.objects.get(id=token_obj.user_id)
         CurrentUser = User.objects.get(id=user.id)
         try:
-            store = Store.objects.get(id=request.data["Store"])
+            store = Store.objects.get(StoreID=request.data["Store"])
             store.IsDeleted = True
             store.DeletedBy = CurrentUser
             store.DeletedOn = datetime.now()
@@ -673,7 +676,7 @@ def DeleteStore(request):
         except BaseException as exception:
             logging.warning(f"Exception Name: {type(exception).__name__}")
             logging.warning(f"Exception Desc: {exception}")
-            return custom_response(message="Deletng Store Failure")
+            return custom_response(message="Deleting Store Failure")
     except Token.DoesNotExist as exception:
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
@@ -692,7 +695,7 @@ def DeleteCategory(request):
         user = User.objects.get(id=token_obj.user_id)
         CurrentUser = User.objects.get(id=user.id)
         try:
-            category = Category.objects.get(id=request.data["Category"])
+            category = Category.objects.get(CategoryID=request.data["Category"])
             category.IsDeleted = True
             category.DeletedBy = CurrentUser
             category.DeletedOn = datetime.now()
@@ -721,7 +724,7 @@ def DeleteProduct(request):
         user = User.objects.get(id=token_obj.user_id)
         CurrentUser = User.objects.get(id=user.id)
         try:
-            product = Product.objects.get(id=request.data["Product"])
+            product = Product.objects.get(ProductID=request.data["Product"])
             product.IsDeleted = True
             product.DeletedBy = CurrentUser
             product.DeletedOn = datetime.now()
@@ -731,7 +734,7 @@ def DeleteProduct(request):
         except BaseException as exception:
             logging.warning(f"Exception Name: {type(exception).__name__}")
             logging.warning(f"Exception Desc: {exception}")
-            return custom_response(message="Deletng Product Failure")
+            return custom_response(message="Deleting Product Failure")
     except Token.DoesNotExist as exception:
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
@@ -750,7 +753,7 @@ def AddProductQuantity(request):
         user = User.objects.get(id=token_obj.user_id)
         CurrentUser = User.objects.get(id=user.id)
         try:
-            product = Product.objects.get(id=request.data["Product"])
+            product = Product.objects.get(ProductID=request.data["Product"])
             product.Quantity = request.data["Quantity"]
             product.UpdatedBy = CurrentUser
             product.UpdatedOn = datetime.now()
@@ -779,7 +782,7 @@ def ChangeOrderStatus(request):
         user = User.objects.get(id=token_obj.user_id)
         CurrentUser = User.objects.get(id=user.id)
         try:
-            order = Orders.objects.get(id=request.data["Order"])
+            order = Orders.objects.get(OrderID=request.data["Order"])
             print(request.data["Status"])
             if request.data["Status"] == 'OnDelivery':
                 order.Status = 'OnDelivery'
@@ -805,6 +808,37 @@ def ChangeOrderStatus(request):
             logging.warning(f"Exception Name: {type(exception).__name__}")
             logging.warning(f"Exception Desc: {exception}")
             return custom_response(message="Changing Order Status Failure")
+    except Token.DoesNotExist as exception:
+        logging.warning(f"Exception Name: {type(exception).__name__}")
+        logging.warning(f"Exception Desc: {exception}")
+        return custom_response(message="Token Does Not Exist")
+    except IndexError as exception:
+        logging.warning(f"Exception Name: {type(exception).__name__}")
+        logging.warning(f"Exception Desc: {exception}")
+        return custom_response(message="No Token Provided")
+
+@api_view(['POST'])
+def ChangeAccountPermissions(request):
+    User = get_user_model()
+    try:
+        token = request.META.get('HTTP_AUTHORIZATION', '').split(' ')[1]
+        token_obj = Token.objects.get(key=token)
+        user = User.objects.get(id=token_obj.user_id)
+        CurrentUser = User.objects.get(id=user.id)
+        try:
+            UpdatedUser=User.objects.get(email=request.data["Email"]),
+            UpdatedUser[0].IsStoreManager=request.data["IsStoreManager"]
+            UpdatedUser[0].IsAdmin=request.data["IsAdmin"]
+            UpdatedUser[0].IsSimpleUser=request.data["IsSimpleUser"]
+            UpdatedUser[0].IsAdvertiser=request.data["IsAdvertiser"]
+            UpdatedUser[0].UpdatedBy = CurrentUser
+            UpdatedUser[0].UpdatedOn = datetime.now()
+            UpdatedUser[0].save()
+            return custom_response(message="Changing Account Permissions Success",success=True)
+        except BaseException as exception:
+            logging.warning(f"Exception Name: {type(exception).__name__}")
+            logging.warning(f"Exception Desc: {exception}")
+            return custom_response(message="Changing Account Permissions Failure")
     except Token.DoesNotExist as exception:
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")

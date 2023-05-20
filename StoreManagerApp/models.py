@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-
+import random
+import string
 
 class CustomUser(AbstractUser):
     PhoneNumber = models.CharField(max_length=20,blank=False,null=False)
@@ -27,16 +28,36 @@ class BaseFields(models.Model):
     class Meta:
         abstract = True
 
+def generate_order_id():
+    characters = string.ascii_lowercase + string.digits
+    return ''.join(random.choice(characters) for _ in range(5))
+
+def generate_store_id():
+    characters = string.ascii_lowercase + string.digits
+    return ''.join(random.choice(characters) for _ in range(5))
+
+def generate_Category_id():
+    characters = string.ascii_lowercase + string.digits
+    return ''.join(random.choice(characters) for _ in range(5))
+
+def generate_product_id():
+    characters = string.ascii_lowercase + string.digits
+    return ''.join(random.choice(characters) for _ in range(5))
+
+def generate_OrderItem_id():
+    characters = string.ascii_lowercase + string.digits
+    return ''.join(random.choice(characters) for _ in range(5))
 
 class Store(BaseFields):
+    StoreID=models.CharField(max_length=6, default=generate_store_id, unique=True,blank=False, null=False,editable=False)
     Owner = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
     Name = models.CharField(max_length=50, blank=False, null=False)
     Image = models.ImageField(upload_to='Stores/', height_field=None, width_field=None, max_length=None)
     def __str__(self):
         return self.Name
 
-
 class Category(BaseFields):
+    CategoryID=models.CharField(max_length=6, default=generate_Category_id, unique=True,blank=False, null=False,editable=False)
     Store = models.ForeignKey(Store, on_delete=models.CASCADE, blank=False, null=False, related_name='categories')
     Name = models.CharField(max_length=50, blank=False, null=False)
     Image = models.ImageField(upload_to='Categories/', height_field=None, width_field=None, max_length=None)
@@ -44,10 +65,10 @@ class Category(BaseFields):
     def __str__(self):
         return self.Name
 
-
 class Product(BaseFields):
+    ProductID=models.CharField(max_length=6, default=generate_product_id, unique=True,blank=False, null=False,editable=False)
     Name = models.CharField(max_length=50, blank=False, null=False)
-    Decription = models.TextField(max_length=255, blank=False, null=False)
+    Description = models.TextField(max_length=255, blank=False, null=False)
     Price = models.CharField(max_length=50, blank=False, null=False)
     Quantity = models.IntegerField(blank=False, null=False)
     Image = models.ImageField(upload_to='Images/', height_field=None, width_field=None, max_length=None)
@@ -56,13 +77,14 @@ class Product(BaseFields):
         return self.Name
     
 class OrderItem(models.Model):
+    OrderItemID=models.CharField(max_length=6, default=generate_OrderItem_id, unique=True,blank=False, null=False,editable=False)
     Product = models.ForeignKey(Product, on_delete=models.CASCADE)
     Quantity = models.IntegerField(blank=False, null=False, default=1)
     def __str__(self):
         return self.Product.Name
 
-
 class Orders(BaseFields):
+    OrderID=models.CharField(max_length=6, default=generate_order_id, unique=True,blank=False, null=False,editable=False)
     Customer = models.ForeignKey(CustomUser, on_delete=models.CASCADE, blank=False, null=False)
     Stores = models.ManyToManyField(Store)
     OrderItems = models.ManyToManyField(OrderItem)
@@ -70,5 +92,4 @@ class Orders(BaseFields):
     Status = models.CharField(choices=[('Preparing', 'Preparing'),
     ('OnDelivery', 'OnDelivery'),('Delivered', 'Delivered'),('Canceled', 'Canceled'),],max_length=10,blank=False,null=False,default='Preparing')
     def __str__(self):
-        return self.Customer.username
-
+        return self.OrderID
