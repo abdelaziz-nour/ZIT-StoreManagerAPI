@@ -463,18 +463,16 @@ def GetUsers(request):
             users = User.objects.all()
             data = []
             for user in users:
-                # Use first() to get the first matching store, if any
                 store = Store.objects.filter(Owner=user.id).first()
+                print('Store :>'+str(store))
                 field = {
                     "id": user.pk,
                     "UserName": user.username,
                     "Email": user.email,
-                    # Use store.Name if store exists, otherwise None
-                    "Store": store.Name if store else "",
-                    "StoreDeletion": store.IsDeleted,
+                    "Store": store.Name if store else "None",
+                    "StoreDeletion": store.IsDeleted if store else False,
                 }
                 data.append(field)
-            print(data)
             return custom_response(data=data, success=True)
 
         except BaseException as exception:
@@ -839,6 +837,139 @@ def ChangeAccountPermissions(request):
             logging.warning(f"Exception Name: {type(exception).__name__}")
             logging.warning(f"Exception Desc: {exception}")
             return custom_response(message="Changing Account Permissions Failure")
+    except Token.DoesNotExist as exception:
+        logging.warning(f"Exception Name: {type(exception).__name__}")
+        logging.warning(f"Exception Desc: {exception}")
+        return custom_response(message="Token Does Not Exist")
+    except IndexError as exception:
+        logging.warning(f"Exception Name: {type(exception).__name__}")
+        logging.warning(f"Exception Desc: {exception}")
+        return custom_response(message="No Token Provided")
+
+@api_view(['POST'])
+def ChangePassword(request):
+    User = get_user_model()
+    try:
+        token = request.META.get('HTTP_AUTHORIZATION', '').split(' ')[1]
+        token_obj = Token.objects.get(key=token)
+        user = User.objects.get(id=token_obj.user_id)
+        CurrentUser = User.objects.get(id=user.id)
+        try:
+            current_password = request.data['Password']
+            new_password = request.data['NewPassword']
+            confirm_password = request.data['ConfirmPassword']
+            # Check if the entered current password matches the user's actual password
+            if CurrentUser.check_password(current_password):
+                # Validate the new password and confirm password
+                if new_password == confirm_password:
+                    # Set the new password
+                    CurrentUser.set_password(new_password)
+                    CurrentUser.save()
+                    return custom_response(message="Changing Password Success",success=True)
+                else:
+                    return custom_response(message='New password and confirm password do not match.')
+            else:
+                return custom_response(message='Incorrect current password.')
+        except BaseException as exception:
+            logging.warning(f"Exception Name: {type(exception).__name__}")
+            logging.warning(f"Exception Desc: {exception}")
+            return custom_response(message="Changing Account Password Failure")
+    except Token.DoesNotExist as exception:
+        logging.warning(f"Exception Name: {type(exception).__name__}")
+        logging.warning(f"Exception Desc: {exception}")
+        return custom_response(message="Token Does Not Exist")
+    except IndexError as exception:
+        logging.warning(f"Exception Name: {type(exception).__name__}")
+        logging.warning(f"Exception Desc: {exception}")
+        return custom_response(message="No Token Provided")
+
+@api_view(['POST'])
+def UpdateProduct(request):
+    User = get_user_model()
+    try:
+        token = request.META.get('HTTP_AUTHORIZATION', '').split(' ')[1]
+        token_obj = Token.objects.get(key=token)
+        user = User.objects.get(id=token_obj.user_id)
+        CurrentUser = User.objects.get(id=user.id)
+        try:
+            product = Product.objects.get(ProductID=request.data["Product"])
+            fields = ['Name', 'Description', 'Price', 'Quantity','Image']
+            for field in fields:
+                if field in request.data:
+                    setattr(product, field, request.data[field])
+            product.UpdatedBy = CurrentUser
+            product.UpdatedOn = datetime.now()
+            product.save()
+            return custom_response(message= 'Product updated successfully.',success=True)
+
+        except BaseException as exception:
+            logging.warning(f"Exception Name: {type(exception).__name__}")
+            logging.warning(f"Exception Desc: {exception}")
+            return custom_response(message="Product updated Failure")
+    except Token.DoesNotExist as exception:
+        logging.warning(f"Exception Name: {type(exception).__name__}")
+        logging.warning(f"Exception Desc: {exception}")
+        return custom_response(message="Token Does Not Exist")
+    except IndexError as exception:
+        logging.warning(f"Exception Name: {type(exception).__name__}")
+        logging.warning(f"Exception Desc: {exception}")
+        return custom_response(message="No Token Provided")
+
+@api_view(['POST'])
+def UpdateStore(request):
+    User = get_user_model()
+    try:
+        token = request.META.get('HTTP_AUTHORIZATION', '').split(' ')[1]
+        token_obj = Token.objects.get(key=token)
+        user = User.objects.get(id=token_obj.user_id)
+        CurrentUser = User.objects.get(id=user.id)
+        try:
+            store = Store.objects.get(StoreID=request.data["Store"])
+            fields = ['Name','Image']
+            for field in fields:
+                if field in request.data:
+                    setattr(store, field, request.data[field])
+            store.UpdatedBy = CurrentUser
+            store.UpdatedOn = datetime.now()
+            store.save()
+            return custom_response(message= 'Store updated successfully.',success=True)
+
+        except BaseException as exception:
+            logging.warning(f"Exception Name: {type(exception).__name__}")
+            logging.warning(f"Exception Desc: {exception}")
+            return custom_response(message="Store Update Failure")
+    except Token.DoesNotExist as exception:
+        logging.warning(f"Exception Name: {type(exception).__name__}")
+        logging.warning(f"Exception Desc: {exception}")
+        return custom_response(message="Token Does Not Exist")
+    except IndexError as exception:
+        logging.warning(f"Exception Name: {type(exception).__name__}")
+        logging.warning(f"Exception Desc: {exception}")
+        return custom_response(message="No Token Provided")
+    
+@api_view(['POST'])
+def UpdateCategory(request):
+    User = get_user_model()
+    try:
+        token = request.META.get('HTTP_AUTHORIZATION', '').split(' ')[1]
+        token_obj = Token.objects.get(key=token)
+        user = User.objects.get(id=token_obj.user_id)
+        CurrentUser = User.objects.get(id=user.id)
+        try:
+            category = Category.objects.get(CategoryID=request.data["Category"])
+            fields = ['Name','Image']
+            for field in fields:
+                if field in request.data:
+                    setattr(category, field, request.data[field])
+            category.UpdatedBy = CurrentUser
+            category.UpdatedOn = datetime.now()
+            category.save()
+            return custom_response(message= 'Category updated successfully.',success=True)
+
+        except BaseException as exception:
+            logging.warning(f"Exception Name: {type(exception).__name__}")
+            logging.warning(f"Exception Desc: {exception}")
+            return custom_response(message="Category updated Failure")
     except Token.DoesNotExist as exception:
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
