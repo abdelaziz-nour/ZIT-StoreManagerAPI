@@ -506,6 +506,7 @@ def GetStoreProducts(request):
                 field = {
                     "id": product.ProductID,
                     "Name": product.Name,
+                    "Description": product.Description,
                     "Category": product.Category.Name,
                     "Price": product.Price,
                     "Image": product.Image.url,
@@ -654,6 +655,59 @@ def GetCategoryProducts(request):
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
         return custom_response(message="No token provided")
+
+@api_view(['Get'])
+def GetUserOrders(request):
+    User = get_user_model()
+    try:
+        token = request.META.get('HTTP_AUTHORIZATION', '').split(' ')[1]
+        token_obj = Token.objects.get(key=token)
+        user = User.objects.get(id=token_obj.user_id)
+        currentUser = User.objects.get(id=user.id)
+        try:
+            orders = Orders.objects.filter(Customer=currentUser)
+            data = []
+            total = 0
+            for order in orders:
+                order_data = {
+                    "id": order.OrderID,
+                    "Status": order.Status,
+                    "Location": order.Location,
+                    'CreatedBy': order.CreatedBy.username,
+                    'CreatedOn': order.CreatedOn.strftime("%Y-%m-%d %H:%M:%S"),
+                    'OrderItems': [],
+
+                }
+                for order_item in order.OrderItems.all():
+                    product = order_item.Product
+                    item_data = {
+                        "id": product.ProductID,
+                        'ProductName': product.Name,
+                        'Price': product.Price,
+                        'Quantity': order_item.Quantity,
+                        'Image': product.Image.url,
+                        'Subtotal': int(product.Price) * int(order_item.Quantity)
+                    }
+                    order_data['OrderItems'].append(item_data)
+                    subtotal = int(product.Price) * \
+                        int(order_item.Quantity)
+                    total += subtotal
+                data.append(order_data)
+            data.append({'Total': total})
+            return custom_response(data=data, success=True)
+
+        except BaseException as exception:
+            logging.warning(f"Exception Name: {type(exception).__name__}")
+            logging.warning(f"Exception Desc: {exception}")
+            return custom_response(message="Getting User Orders Failure")
+    except Token.DoesNotExist as exception:
+        logging.warning(f"Exception Name: {type(exception).__name__}")
+        logging.warning(f"Exception Desc: {exception}")
+        return custom_response(message="Token Does Not Exist")
+    except IndexError as exception:
+        logging.warning(f"Exception Name: {type(exception).__name__}")
+        logging.warning(f"Exception Desc: {exception}")
+        return custom_response(message="No Token Provided")
 
 @api_view(['POST'])
 def DeleteStore(request):

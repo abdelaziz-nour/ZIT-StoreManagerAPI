@@ -17,7 +17,7 @@ urlpatterns = [
     path('addorder', views.AddOrder),#zit
 
     path('getusers', views.GetUsers),#web
-    path('getstores', views.GetStores),#web
+    path('getstores', views.GetStores),#web-zit##########
     path('getproducts', views.GetProducts),#web
     path('getorders', views.GetOrders),#web
 
@@ -25,6 +25,7 @@ urlpatterns = [
     path('getcategoryproducts', views.GetCategoryProducts),#zit-sma-web
     path('getstoreproducts', views.GetStoreProducts),#web
     path('getstoreorders', views.GetStoreOrders),#sma-web
+    path('getuserorders', views.GetUserOrders),#sma-web
 
     path('deletestore', views.DeleteStore),#web
     path('deletecategory', views.DeleteCategory),#web-sma
