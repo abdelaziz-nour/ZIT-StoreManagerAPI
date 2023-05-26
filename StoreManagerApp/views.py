@@ -159,7 +159,7 @@ def StoreManagerLogin(request):
                     'StoreID':store.StoreID},
                 success=True
             )
-            
+
         else:
             return custom_response(message="No Store Manager Account Match Giving Credentials")
 
@@ -272,17 +272,16 @@ def AddOrder(request):
         user = User.objects.get(id=token_obj.user_id)
         CurrentUser = User.objects.get(id=user.id)
         try:
-            data = json.loads(request.body)
-            products = data.get('OrderedProducts')
-            amounts = data.get('Amounts')
-            location = data.get('Location')
+            products = request.data['OrderedProducts']
+            amounts = request.data['Amounts']
+            location = request.data['Location']
 
             # Create the order and save it
             order = Orders(Customer=CurrentUser)
             order.Location = location
             order.CreatedBy = CurrentUser
             order.CreatedOn = datetime.now()
-            
+
 
             for i, product_id in enumerate(products):
                 product = Product.objects.get(ProductID=product_id)
@@ -1000,7 +999,7 @@ def UpdateStore(request):
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
         return custom_response(message="No Token Provided")
-    
+
 @api_view(['POST'])
 def UpdateCategory(request):
     User = get_user_model()
