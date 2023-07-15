@@ -17,15 +17,15 @@ urlpatterns = [
     path('addorder', views.AddOrder),#zit
 
     path('getusers', views.GetUsers),#web
-    path('getstores', views.GetStores),#web-zit##########
+    path('getstores', views.GetStores),#web-zit
     path('getproducts', views.GetProducts),#web
     path('getorders', views.GetOrders),#web
 
     path('getstorecategories', views.GetStoreCategories),#zit-sma-web
     path('getcategoryproducts', views.GetCategoryProducts),#zit-sma-web
-    path('getstoreproducts', views.GetStoreProducts),#web
+    path('getstoreproducts', views.GetStoreProducts),#web-zit
     path('getstoreorders', views.GetStoreOrders),#sma-web
-    path('getuserorders', views.GetUserOrders),#sma-web
+    path('getuserorders', views.GetUserOrders),#zit
 
     path('deletestore', views.DeleteStore),#web
     path('deletecategory', views.DeleteCategory),#web-sma
@@ -39,5 +39,8 @@ urlpatterns = [
     path('updateproduct', views.UpdateProduct),#sma
     path('updatestore', views.UpdateStore),#web
     path('updatecategory', views.UpdateCategory),#sma
+
+    path('getmostorderedstores', views.GetMostOrderedStores),#web
+    path('getmostorderedproducts', views.GetMostOrderedProducts),#web
 
     ]

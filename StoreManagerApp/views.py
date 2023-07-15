@@ -1,4 +1,5 @@
 import logging
+from operator import itemgetter
 from django.http import HttpResponse
 from StoreManagerApp.helper import custom_response
 from .models import *
@@ -6,8 +7,9 @@ from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view
 from django.contrib.auth import authenticate
 from django.contrib.auth import get_user_model
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
+from django.db.models import Count,OuterRef,Subquery
 
 
 def index(request):
@@ -1024,6 +1026,98 @@ def UpdateCategory(request):
             logging.warning(f"Exception Name: {type(exception).__name__}")
             logging.warning(f"Exception Desc: {exception}")
             return custom_response(message="Category updated Failure")
+    except Token.DoesNotExist as exception:
+        logging.warning(f"Exception Name: {type(exception).__name__}")
+        logging.warning(f"Exception Desc: {exception}")
+        return custom_response(message="Token Does Not Exist")
+    except IndexError as exception:
+        logging.warning(f"Exception Name: {type(exception).__name__}")
+        logging.warning(f"Exception Desc: {exception}")
+        return custom_response(message="No Token Provided")
+
+@api_view(['GET'])
+def GetMostOrderedStores(request):
+    User = get_user_model()
+    try:
+        token = request.META.get('HTTP_AUTHORIZATION', '').split(' ')[1]
+        token_obj = Token.objects.get(key=token)
+        user = User.objects.get(id=token_obj.user_id)
+        User.objects.get(id=user.id)
+        try:
+            thirty_days_ago = datetime.today() - timedelta(days=30)
+            stores = Store.objects.filter(IsDeleted=False)
+
+            stores_with_orders = []
+            for store in stores:
+                num_orders = Orders.objects.filter(Stores=store, CreatedOn__gte=thirty_days_ago).count()
+                stores_with_orders.append((store, num_orders))
+            #sorting stores_with_orders according to the index 1 (not 0) which is num_orders
+            stores_with_orders.sort(key=itemgetter(1), reverse=True)
+
+            data = []
+            for store, num_orders in stores_with_orders:
+                field = {
+                    "id": store.StoreID,
+                    "Owner": store.Owner.username,
+                    "Name": store.Name,
+                    "Image": store.Image.url,
+                    "OrdersCount": num_orders
+                }
+                data.append(field)
+
+
+            return custom_response(data=data, success=True)
+
+        except Exception as exception:
+            logging.warning(f"Exception Name: {type(exception).__name__}")
+            logging.warning(f"Exception Desc: {exception}")
+            return custom_response(message="Failed to retrieve stores with most orders")
+    except Token.DoesNotExist as exception:
+        logging.warning(f"Exception Name: {type(exception).__name__}")
+        logging.warning(f"Exception Desc: {exception}")
+        return custom_response(message="Token Does Not Exist")
+    except IndexError as exception:
+        logging.warning(f"Exception Name: {type(exception).__name__}")
+        logging.warning(f"Exception Desc: {exception}")
+        return custom_response(message="No Token Provided")
+
+@api_view(['GET'])
+def GetMostOrderedProducts(request):
+    User = get_user_model()
+    try:
+        token = request.META.get('HTTP_AUTHORIZATION', '').split(' ')[1]
+        token_obj = Token.objects.get(key=token)
+        user = User.objects.get(id=token_obj.user_id)
+        User.objects.get(id=user.id)
+        try:
+            thirty_days_ago = datetime.now() - timedelta(days=30)
+            products = Product.objects.filter(IsDeleted=False)
+            products_with_orders = []
+            for product in products:
+                num_orders = Orders.objects.filter(OrderItems__Product=product, CreatedOn__gte=thirty_days_ago).count()
+                products_with_orders.append((product, num_orders))
+            #sorting stores_with_orders according to the index 1 (not 0) which is num_orders
+            products_with_orders.sort(key=itemgetter(1), reverse=True)
+
+            data = []
+            for product, num_orders in products_with_orders:
+                field = {
+                    "id": product.ProductID,
+                    "Name": product.Name,
+                    "Description": product.Description,
+                    "Price": product.Price,
+                    "Quantity": product.Quantity,
+                    "Image": product.Image.url,
+                    "OrdersCount": num_orders
+                }
+                data.append(field)
+
+            return custom_response(data=data, success=True)
+
+        except Exception as exception:
+            logging.warning(f"Exception Name: {type(exception).__name__}")
+            logging.warning(f"Exception Desc: {exception}")
+            return custom_response(message="Failed to retrieve most ordered products")
     except Token.DoesNotExist as exception:
         logging.warning(f"Exception Name: {type(exception).__name__}")
         logging.warning(f"Exception Desc: {exception}")
