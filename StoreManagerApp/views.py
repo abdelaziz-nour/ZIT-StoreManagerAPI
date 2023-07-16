@@ -158,7 +158,9 @@ def StoreManagerLogin(request):
             return custom_response(
                 data={'token': token.key,
                     'StoreName':store.Name,
-                    'StoreID':store.StoreID},
+                    'StoreID':store.StoreID,
+                    'StoreImage':store.Image.url,
+                    },
                 success=True
             )
             
