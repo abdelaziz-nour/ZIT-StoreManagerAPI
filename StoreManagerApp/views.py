@@ -474,6 +474,7 @@ def GetUsers(request):
                     "UserName": user.username,
                     "Email": user.email,
                     "Store": store.Name if store else "None",
+                    "StoreID": store.StoreID if store else "None",
                     "StoreDeletion": store.IsDeleted if store else False,
                 }
                 data.append(field)
