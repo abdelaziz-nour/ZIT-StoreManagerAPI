@@ -381,6 +381,7 @@ def GetProducts(request):
                     "id": product.ProductID,
                     "Store": product.Category.Store.Name,
                     "Name": product.Name,
+                    "Price": product.Price,
                     "Image": product.Image.url,
                 }
                 data.append(field)
