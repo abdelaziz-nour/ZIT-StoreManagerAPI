@@ -1110,7 +1110,7 @@ def GetMostOrderedProducts(request):
                     "Name": product.Name,
                     "Description": product.Description,
                     "Price": product.Price,
-                    "Quantity": product.Quantity,
+                    "Store": product.Category.Store.Name,
                     "Image": product.Image.url,
                     "OrdersCount": num_orders
                 }
